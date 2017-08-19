@@ -11,8 +11,8 @@ public interface EventLogSource {
 
     void setLogger(EventLogger log);
 
-    default String id() {
-        return null;
-    }
+//    default String id() {
+//        return null;
+//    }
 
 }

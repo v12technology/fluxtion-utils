@@ -109,6 +109,14 @@ public class LogRecord {
         sb.append("\n\tnodeLogs: [");
     }
 
+    public void triggerObject(Class<?> aClass) {
+        sb.append("eventLogRecord: {");
+        sb.append("\n\tlogTime: ").append(System.currentTimeMillis()).append(',');
+        sb.append("\n\tgroupingId: ").append(groupingId).append(',');
+        sb.append("\n\tevent: ").append(aClass.getSimpleName()).append(',');
+        sb.append("\n\tnodeLogs: [");
+    }
+
     public void terminateRecord() {
         if (this.sourceId != null) {
             sb.append("}");
