@@ -42,23 +42,18 @@ import java.util.Map;
  */
 public class EventLogManager implements Auditor {
 
-    public List<EventLogSource> sources;
-    public List<String> nodeNames;
     private LogRecordListener sink;
     private LogRecord logRecord;
     private Map<String, EventLogger> node2Logger;
     private boolean clearAfterPublish;
 
-    public EventLogManager() {
-        this.nodeNames = new ArrayList<>();
-        this.sources = new ArrayList<>();
-    }
-
     @Override
     public void nodeRegistered(Object node, String nodeName) {
         if (node instanceof EventLogSource) {
-            sources.add((EventLogSource) node);
-            nodeNames.add(nodeName);
+            EventLogSource calcSource = (EventLogSource) node;
+            EventLogger logger = new EventLogger(logRecord, nodeName);
+            calcSource.setLogger(logger);
+            node2Logger.put(nodeName, logger);
         }
     }
 
@@ -101,17 +96,9 @@ public class EventLogManager implements Auditor {
 //    @Initialise
     @Override
     public void init() {
-        //for each source initialise 
         logRecord = new LogRecord();
         node2Logger = new HashMap<>();
         clearAfterPublish = true;
-        for (int i = 0; i < sources.size(); i++) {
-            EventLogSource calcSource = sources.get(i);
-            String name = nodeNames.get(i);
-            EventLogger logger = new EventLogger(logRecord, name);
-            calcSource.setLogger(logger);
-            node2Logger.put(name, logger);
-        }
         sink = System.out::println;
     }
 
@@ -119,7 +106,7 @@ public class EventLogManager implements Auditor {
     public void eventReceived(Event triggerEvent) {
         logRecord.triggerEvent(triggerEvent.getClass());
     }
-    
+
     @Override
     public void eventReceived(Object triggerEvent) {
         logRecord.triggerObject(triggerEvent.getClass());
