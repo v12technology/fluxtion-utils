@@ -19,12 +19,14 @@ package com.fluxtion.runtime.plugin.monitoring;
 import com.fluxtion.api.annotations.EventHandler;
 import com.fluxtion.runtime.audit.Auditor;
 import com.fluxtion.runtime.event.Event;
+import com.fluxtion.runtime.plugin.auditing.DelegatingAuditor;
 import com.fluxtion.runtime.plugin.events.ClassFilterEvent;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -46,18 +48,18 @@ public class PropertyRecorder implements Auditor {
     @EventHandler(filterStringFromClass = PropertyRecorder.class)
     public void listenerUpdate(ClassFilterEvent event) {
         PropertyRecordListener listener = (PropertyRecordListener) event.getListener();
-        if(event.isRegister()){
+        if (event.isRegister()) {
             listenerSet.add(listener);
-        }else{
+        } else {
             listenerSet.remove(listener);
         }
     }
 
     public void listenerUpdate(ListenerUpdate event) {
         PropertyRecordListener listener = (PropertyRecordListener) event.listener;
-        if(event.add){
+        if (event.add) {
             listenerSet.add(listener);
-        }else{
+        } else {
             listenerSet.remove(listener);
         }
     }
@@ -78,11 +80,43 @@ public class PropertyRecorder implements Auditor {
     public void recorderControl(PropertyRecorderControl propertyRecorderControl) {
         String nodeName = propertyRecorderControl.getNodeName();
         String fieldName = propertyRecorderControl.getFieldName();
+        final PropertyReader propertyReader = new PropertyReader(nodeName, fieldName, name2Node.get(nodeName));
         if (propertyRecorderControl.isRecord()) {
-            onEventPropertyReaderSet.add(new PropertyReader(nodeName, fieldName, name2Node.get(nodeName)));
+            allReaderSet.add(propertyReader);
+            if (!propertyRecorderControl.isPublishOnDemand()) {
+                onEventPropertyReaderSet.add(propertyReader);
+            }
         } else {
-            onEventPropertyReaderSet.remove(new PropertyReader(nodeName, fieldName, name2Node.get(nodeName)));
+            onEventPropertyReaderSet.remove(propertyReader);
+            allReaderSet.remove(propertyReader);
         }
+    }
+
+    //helper methods
+    public PropertyRecorder addConsolePublisher() {
+        removeConsolePublisher();
+        listenerSet.add(new ConsoleListener());
+        return this;
+    }
+
+    public PropertyRecorder removeConsolePublisher() {
+        for (Iterator<PropertyRecordListener> iterator = listenerSet.iterator(); iterator.hasNext();) {
+            PropertyRecordListener listener = iterator.next();
+            if (listener instanceof ConsoleListener) {
+                iterator.remove();
+            }
+        }
+        return this;
+    }
+
+    public PropertyRecorder addPropertyTrace(String nodeName, String fieldName, boolean publishOnDemand) {
+        recorderControl(new PropertyRecorderControl(nodeName, fieldName, true, publishOnDemand));
+        return this;
+    }
+
+    public PropertyRecorder removePropertyTrace(String nodeName, String fieldName, boolean publishOnDemand) {
+        recorderControl(new PropertyRecorderControl(nodeName, fieldName, false, publishOnDemand));
+        return this;
     }
 
     @Override
@@ -106,6 +140,27 @@ public class PropertyRecorder implements Auditor {
             this.listener = listener;
         }
 
+    }
+
+    public static class ConsoleListener implements PropertyRecordListener {
+
+        @Override
+        public void update(PropertyRecord propertyRecord) {
+            System.out.println(propertyRecord.getInstanceName()
+                    + "." + propertyRecord.getPropertyName()
+                    + ": " + propertyRecord.getFormattedValue());
+        }
+
+    }
+
+    public static PropertyRecorder addPropertyRecorder(com.fluxtion.runtime.lifecycle.EventHandler handler) {
+        PropertyRecorder recorder = new PropertyRecorder();
+        handler.onEvent(new DelegatingAuditor.AuditorRegistration(true, recorder));
+        return recorder;
+    }
+
+    public enum ListenerTypes {
+        CONSOLE, INFLUX
     }
 
     public static class MyConfig<T> {

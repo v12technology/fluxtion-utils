@@ -50,4 +50,8 @@ public class PropertyRecorderControl extends Event {
         return record;
     }
 
+    public boolean isPublishOnDemand() {
+        return publishOnDemand;
+    }
+    
 }
