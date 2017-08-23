@@ -40,24 +40,24 @@ public class PropertyReader implements PropertyRecord {
         if (instance == null | propertyName == null | instanceName == null) {
             field = null;
             value.setLength(0);
-            value.append("error: bad config");
+            value.append("error bad config");
         } else {
             //specific test for primitive type to generate zero GC
             field = FieldUtils.getField(instance.getClass(), propertyName, true);
             if (field == null) {
                 value.setLength(0);
-                value.append("error: missing property");
+                value.append("error missing property");
             }
         }
     }
 
     public void recordValue() {
-        if (value != null) {
+        if (field != null) {
             value.setLength(0);
             try {
                 value.append(FieldUtils.readField(field, instance).toString());
             } catch (IllegalAccessException ex) {
-                value.append("error: cannot read");
+                value.append("error cannot read");
             }
         }
     }
