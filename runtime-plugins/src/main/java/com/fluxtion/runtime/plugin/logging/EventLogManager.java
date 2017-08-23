@@ -21,8 +21,6 @@ package com.fluxtion.runtime.plugin.logging;
 import com.fluxtion.api.annotations.EventHandler;
 import com.fluxtion.runtime.audit.Auditor;
 import com.fluxtion.runtime.event.Event;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -99,7 +97,7 @@ public class EventLogManager implements Auditor {
         logRecord = new LogRecord();
         node2Logger = new HashMap<>();
         clearAfterPublish = true;
-        sink = System.out::println;
+        sink = (l) -> {};
     }
 
     @Override
