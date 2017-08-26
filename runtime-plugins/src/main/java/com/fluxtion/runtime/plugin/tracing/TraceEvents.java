@@ -27,23 +27,5 @@ public class TraceEvents {
     public static class PublishProperties extends Event {
     }
 
-    public static class ListenerUpdate extends Event {
 
-        private final boolean add;
-        private final TraceRecordListener listener;
-
-        public ListenerUpdate(boolean add, TraceRecordListener listener) {
-            this.add = add;
-            this.listener = listener;
-        }
-
-        public boolean isAdd() {
-            return add;
-        }
-
-        public TraceRecordListener getListener() {
-            return listener;
-        }
-
-    }
 }
