@@ -22,11 +22,7 @@ import com.fluxtion.api.annotations.EventHandler;
 import com.fluxtion.runtime.audit.Auditor;
 import com.fluxtion.runtime.plugin.auditing.DelegatingAuditor;
 import com.fluxtion.runtime.plugin.events.ListenerRegistrationEvent;
-import com.fluxtion.runtime.plugin.tracing.TraceEvents.ListenerUpdate;
 import com.fluxtion.runtime.plugin.tracing.TraceEvents.PublishProperties;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -55,20 +51,10 @@ public class Tracer implements Auditor {
         name2Node.put(nodeName, node);
     }
 
-    @EventHandler(filterStringFromClass = TraceRecordListener.class)
+    @EventHandler
     public void listenerUpdate(ListenerRegistrationEvent<TraceRecordListener> event) {
         TraceRecordListener listener = event.value;
-//        listenerUpdate(listener);
         if (event.register) {
-            listenerSet.add(listener);
-        } else {
-            listenerSet.remove(listener);
-        }
-    }
-
-    public void listenerUpdate(ListenerUpdate event) {
-        TraceRecordListener listener = (TraceRecordListener) event.getListener();
-        if (event.isAdd()) {
             listenerSet.add(listener);
         } else {
             listenerSet.remove(listener);
@@ -164,25 +150,6 @@ public class Tracer implements Auditor {
 
     public enum ListenerTypes {
         CONSOLE, INFLUX
-    }
-
-    public static class MyConfig<T> {
-
-        T config;
-    }
-
-    public void myHandler(MyConfig<? extends String> strConfonfig) {
-
-    }
-
-    public static void main(String[] args) throws NoSuchMethodException {
-        Method declaredMethod = Tracer.class.getDeclaredMethod("myHandler", MyConfig.class);
-        ParameterizedType pt = (ParameterizedType) declaredMethod.getGenericParameterTypes()[0];
-        final Type actualType = pt.getActualTypeArguments()[0];
-        final Class rawType = (Class) pt.getRawType();
-        System.out.println("parameter type:" + actualType);
-        System.out.println("raw type:" + rawType);
-        System.out.printf("cast: (%s<%s>)%n", rawType.getSimpleName(), actualType);
     }
 
 }
