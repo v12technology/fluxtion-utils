@@ -1,8 +1,10 @@
 /* 
- * Copyright (C) 2017 V12 Technology Limited
+ * Copyright (C) 2017 V12 Technology Limited (greg.higgins@v12technology.com)
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * This file is part of Fluxtion.
+ *
+ * Fluxtion is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
@@ -11,16 +13,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.fluxtion.runtime.plugin.tracing;
 
 import com.fluxtion.api.annotations.EventHandler;
 import com.fluxtion.runtime.audit.Auditor;
-import com.fluxtion.runtime.event.Event;
 import com.fluxtion.runtime.plugin.auditing.DelegatingAuditor;
-import com.fluxtion.runtime.plugin.events.ClassFilterEvent;
+import com.fluxtion.runtime.plugin.events.ListenerRegistrationEvent;
+import com.fluxtion.runtime.plugin.tracing.TraceEvents.ListenerUpdate;
+import com.fluxtion.runtime.plugin.tracing.TraceEvents.PublishProperties;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -45,11 +48,11 @@ public class Tracer implements Auditor {
         name2Node.put(nodeName, node);
     }
 
-    @EventHandler(filterStringFromClass = Tracer.class)
-    public void listenerUpdate(ClassFilterEvent event) {
-        TraceRecordListener listener = (TraceRecordListener) event.getListener();
+    @EventHandler(filterStringFromClass = TraceRecordListener.class)
+    public void listenerUpdate(ListenerRegistrationEvent<TraceRecordListener> event) {
+        TraceRecordListener listener = event.value;
 //        listenerUpdate(listener);
-        if (event.isRegister()) {
+        if (event.register) {
             listenerSet.add(listener);
         } else {
             listenerSet.remove(listener);
@@ -57,8 +60,8 @@ public class Tracer implements Auditor {
     }
 
     public void listenerUpdate(ListenerUpdate event) {
-        TraceRecordListener listener = (TraceRecordListener) event.listener;
-        if (event.add) {
+        TraceRecordListener listener = (TraceRecordListener) event.getListener();
+        if (event.isAdd()) {
             listenerSet.add(listener);
         } else {
             listenerSet.remove(listener);
@@ -128,20 +131,7 @@ public class Tracer implements Auditor {
         listenerSet = new HashSet<>();
     }
 
-    public static class PublishProperties extends Event {
-    }
 
-    public static class ListenerUpdate extends Event {
-
-        private final boolean add;
-        private final TraceRecordListener listener;
-
-        public ListenerUpdate(boolean add, TraceRecordListener listener) {
-            this.add = add;
-            this.listener = listener;
-        }
-
-    }
 
     public static class ConsoleListener implements TraceRecordListener {
 
