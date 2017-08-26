@@ -22,10 +22,13 @@ import com.fluxtion.runtime.event.Event;
 
 /**
  * A generic event, where the filter is determined by the class type. An event
- * handler can use the following syntax to receive events filtered type <T>:
+ * handler can use the following syntax to receive events filtered by generic type
  * 
  * <pre>
- * '@EventHandler(filterStringFromClass = [T].class)
+ * '@EventHandler
+ * public void someMethod(GenericEvent&lt;MyTYpe&gt; event){
+ * ...
+ * }
  * </pre>
  * 
  * @author Greg Higgins (greg.higgins@V12technology.com)
@@ -34,7 +37,6 @@ import com.fluxtion.runtime.event.Event;
 public class GenericEvent <T> extends Event{
     
     public final T value;
-//    private final boolean register;
 
     public GenericEvent(T value){
         super(Event.NO_ID, value.getClass().getCanonicalName());
