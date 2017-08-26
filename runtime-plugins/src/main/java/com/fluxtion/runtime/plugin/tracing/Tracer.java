@@ -34,6 +34,13 @@ import java.util.Set;
 
 /**
  *
+ * A Tracer implements Auditor to provide property tracing functionality from
+ * any node in a SEP and publishes to a registered TraceRecordListeners.
+ *
+ * Individual property traces are configured with a call to recorderControl(
+ * TracerConfigEvent propertyRecorderControl). Tracing can be on demand or
+ * on any event update, individually configured for each property traced.
+ *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
 public class Tracer implements Auditor {
@@ -102,7 +109,7 @@ public class Tracer implements Auditor {
         listenerSet.add(new ConsoleListener());
         return this;
     }
-    
+
     //TODO add http push to InfluxDb for Grafana graphing
     public Tracer addInfluxDbPublisher() {
         removeConsolePublisher();
@@ -137,8 +144,6 @@ public class Tracer implements Auditor {
         allReaderSet = new HashSet<>();
         listenerSet = new HashSet<>();
     }
-
-
 
     public static class ConsoleListener implements TraceRecordListener {
 
