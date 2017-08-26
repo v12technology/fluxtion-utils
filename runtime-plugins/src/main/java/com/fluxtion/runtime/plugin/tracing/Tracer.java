@@ -102,6 +102,13 @@ public class Tracer implements Auditor {
         listenerSet.add(new ConsoleListener());
         return this;
     }
+    
+    //TODO add http push to InfluxDb for Grafana graphing
+    public Tracer addInfluxDbPublisher() {
+        removeConsolePublisher();
+        listenerSet.add(new ConsoleListener());
+        return this;
+    }
 
     public Tracer removeConsolePublisher() {
         for (Iterator<TraceRecordListener> iterator = listenerSet.iterator(); iterator.hasNext();) {
