@@ -25,7 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Delegating auditor.
+ * Delegating auditor, allows Auditors to be registered at run time if a 
+ * DelegatingAuditor is built into the generated SEP.
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
