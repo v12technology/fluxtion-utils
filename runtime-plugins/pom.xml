@@ -134,6 +134,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
         <dependency>
             <groupId>com.fluxtion.extension</groupId>
             <artifactId>fluxtion-declarative-ext-builder</artifactId>
+            <scope>compile</scope>
         </dependency>		
         <dependency>
             <groupId>org.yaml</groupId>
