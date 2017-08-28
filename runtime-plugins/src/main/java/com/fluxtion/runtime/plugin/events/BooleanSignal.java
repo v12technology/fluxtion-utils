@@ -21,48 +21,48 @@ package com.fluxtion.runtime.plugin.events;
 import com.fluxtion.runtime.event.Event;
 
 /**
- * ControlSignal is an event that provides a generic method for nodes to receive
- * control signals without having to define bespoke control events for each type
- * of signal.
+ * BooleanSignal is an event that provides a generic method for nodes to receive
+ control signals without having to define bespoke control events for each type
+ of signal.
  *
- * The ControlSignal has a filter string, which allows the receiver to filter
- * which ControlSignals it should be informed of. A node marks a method with a
- * filtered EventHandler annotation to receive a control message:
- *
- * <pre>
- *
- * EventHandler(filterString = "filterString", propogate = false)
- * public void controlMethod(ControlSignal publishSignal){
- *
- * }
- * </pre>
- * 
- * Using the propogate=false will prevent a control signal from starting an
- * event chain for any dependent nodes.
- *
- * The ControlSignal also provides an optional enable flag the
- * receiver can inspect.
+ * The BooleanSignal has a filter string, which allows the receiver to filter
+ which ControlSignals it should be informed of. A node marks a method with a
+ filtered EventHandler annotation to receive a control message:
+
+ <pre>
+
+ EventHandler(filterString = "filterString", propogate = false)
+ public void controlMethod(BooleanSignal publishSignal){
+
+ }
+ </pre>
+ 
+ Using the propogate=false will prevent a control signal from starting an
+ event chain for any dependent nodes.
+
+ The BooleanSignal also provides an optional enable flag the
+ receiver can inspect.
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
-public class ControlSignal extends Event {
+public class BooleanSignal extends Event {
 
-    private final boolean enabled;
+    private final boolean value;
 
-    public ControlSignal(String signalName, boolean enabled) {
+    public BooleanSignal(String signalName, boolean enabled) {
         super(NO_ID, signalName);
-        this.enabled = enabled;
+        this.value = enabled;
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public boolean value() {
+        return value;
     }
 
     @Override
     public String toString() {
         return "ControlSignal{"
                 + "control.filter=" + filterString
-                + "enabled=" + enabled
+                + "value=" + value
                 + '}';
     }
 
