@@ -20,7 +20,6 @@ package com.fluxtion.runtime.plugin.profiler;
 
 import com.fluxtion.runtime.audit.Auditor;
 import com.fluxtion.runtime.event.Event;
-import java.util.HashMap;
 
 /**
  *
