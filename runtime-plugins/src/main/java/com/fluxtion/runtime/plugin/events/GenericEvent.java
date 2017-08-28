@@ -25,7 +25,7 @@ import com.fluxtion.runtime.event.Event;
  * handler can use the following syntax to receive events filtered by generic type
  * 
  * <pre>
- * '@EventHandler
+ *{@literal @}EventHandler
  * public void someMethod(GenericEvent&lt;MyTYpe&gt; event){
  * ...
  * }
