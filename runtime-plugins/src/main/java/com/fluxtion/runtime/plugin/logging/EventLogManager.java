@@ -102,12 +102,12 @@ public class EventLogManager implements Auditor {
 
     @Override
     public void eventReceived(Event triggerEvent) {
-        logRecord.triggerEvent(triggerEvent.getClass());
+        logRecord.triggerEvent(triggerEvent);
     }
 
     @Override
     public void eventReceived(Object triggerEvent) {
-        logRecord.triggerObject(triggerEvent.getClass());
+        logRecord.triggerObject(triggerEvent);
     }
 
 }

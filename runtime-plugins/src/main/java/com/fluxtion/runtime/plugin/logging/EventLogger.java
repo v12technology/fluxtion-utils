@@ -22,7 +22,7 @@ import com.fluxtion.runtime.plugin.logging.EventLogConfig.LogLevel;
 
 /**
  * A logger for an individual EventLoggerSource node. Users write double values
- * with keys using one of the convenience methods. The CalculationLogManager
+ * with keys using one of the convenience methods. The EventLogManager
  * will aggregate all data into a LogRecord and publish.
  *
  * @author Greg Higgins (greg.higgins@v12technology.com)

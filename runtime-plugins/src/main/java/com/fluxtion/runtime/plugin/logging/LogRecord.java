@@ -36,7 +36,6 @@ public class LogRecord {
      */
     public String groupingId;
 
-    
     public long eventId;
     /**
      * The time the event was received
@@ -103,20 +102,29 @@ public class LogRecord {
         return sb;
     }
 
-    public void triggerEvent(Class<? extends Event> aClass) {
+    public void triggerEvent(Event event) {
+        Class<? extends Event> aClass = event.getClass();
         sb.append("eventLogRecord: {");
         sb.append("\n\tlogTime: ").append(System.currentTimeMillis()).append(',');
         sb.append("\n\tgroupingId: ").append(groupingId).append(',');
         sb.append("\n\tevent: ").append(aClass.getSimpleName()).append(',');
+        if (event.filterString() != null && !event.filterString().isEmpty()) {
+            sb.append("\n\teventFilter: ").append(event.filterString()).append(',');
+        }
         sb.append("\n\tnodeLogs: [");
     }
 
-    public void triggerObject(Class<?> aClass) {
-        sb.append("eventLogRecord: {");
-        sb.append("\n\tlogTime: ").append(System.currentTimeMillis()).append(',');
-        sb.append("\n\tgroupingId: ").append(groupingId).append(',');
-        sb.append("\n\tevent: ").append(aClass.getSimpleName()).append(',');
-        sb.append("\n\tnodeLogs: [");
+    public void triggerObject(Object event) {
+        if (event instanceof Event) {
+            triggerEvent((Event) event);
+        } else {
+            Class<?> aClass = event.getClass();
+            sb.append("eventLogRecord: {");
+            sb.append("\n\tlogTime: ").append(System.currentTimeMillis()).append(',');
+            sb.append("\n\tgroupingId: ").append(groupingId).append(',');
+            sb.append("\n\tevent: ").append(aClass.getSimpleName()).append(',');
+            sb.append("\n\tnodeLogs: [");
+        }
     }
 
     public void terminateRecord() {
