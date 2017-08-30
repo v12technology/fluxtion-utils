@@ -40,10 +40,10 @@ public class AuditedSep extends SEPConfig {
 
     public AuditedSep() {
         //add default auditors
-        addAuditor(new EventLogManager(), "logger");
-        addAuditor(new Tracer(), "propertyTracer");
         addAuditor(new HdrProfiler(), "profiler");
         addAuditor(new DelegatingAuditor(), "delegatingAuditor");
+        addAuditor(new Tracer(), "propertyTracer");
+        addAuditor(new EventLogManager(), "logger");
     }
 
 }
