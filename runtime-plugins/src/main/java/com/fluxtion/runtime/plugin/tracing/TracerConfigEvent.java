@@ -21,15 +21,29 @@ package com.fluxtion.runtime.plugin.tracing;
 import com.fluxtion.runtime.event.Event;
 
 /**
- *
+ * A configuration event for a Tracer registered in a static event processor
+ * 
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
 public class TracerConfigEvent extends Event {
 
-    private String nodeName;
-    private String fieldName;
-    private boolean record;
-    private boolean publishOnDemand;
+    /**
+     * The node name to extract properties from
+     */
+    private final String nodeName;
+    /**
+     * The field name to extract value from
+     */
+    private final String fieldName;
+    /**
+     * Add or remove trace - false = remove trace
+     */
+    private final boolean record;
+    /**
+     * publish trace record on every event or on demand, using PublishProperties
+     * event
+     */
+    private final boolean publishOnDemand;
 
     public TracerConfigEvent(String nodeName, String fieldName, boolean record, boolean publishOnDemand) {
         this.nodeName = nodeName;
