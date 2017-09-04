@@ -26,15 +26,34 @@ import com.fluxtion.runtime.event.Event;
  */
 public class TracerConfigEvent extends Event {
 
-    private final String nodeName;
-    private final String fieldName;
-    private final boolean record;
-    private final boolean publishOnDemand;
+    private String nodeName;
+    private String fieldName;
+    private boolean record;
+    private boolean publishOnDemand;
 
     public TracerConfigEvent(String nodeName, String fieldName, boolean record, boolean publishOnDemand) {
         this.nodeName = nodeName;
         this.fieldName = fieldName;
         this.record = record;
+        this.publishOnDemand = publishOnDemand;
+    }
+
+    public TracerConfigEvent() {
+    }
+
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
+    }
+
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
+    }
+
+    public void setRecord(boolean record) {
+        this.record = record;
+    }
+
+    public void setPublishOnDemand(boolean publishOnDemand) {
         this.publishOnDemand = publishOnDemand;
     }
 
@@ -53,5 +72,10 @@ public class TracerConfigEvent extends Event {
     public boolean isPublishOnDemand() {
         return publishOnDemand;
     }
-    
+
+    @Override
+    public String toString() {
+        return "TracerConfigEvent{" + "nodeName=" + nodeName + ", fieldName=" + fieldName + ", record=" + record + ", publishOnDemand=" + publishOnDemand + '}';
+    }
+
 }
