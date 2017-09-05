@@ -7,8 +7,10 @@ package com.fluxtion.runtime.plugin.container.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.NODE_LIST;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
+import com.fluxtion.runtime.plugin.reflection.NodeDescription;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.ObjectMapper;
@@ -16,6 +18,8 @@ import com.mashape.unirest.http.Unirest;
 import static com.mashape.unirest.http.Unirest.post;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 
@@ -47,6 +51,11 @@ public class SepManagementEngineClient {
 
     public HttpResponse<String> configureEventLogger(EventLogConfig eventLoggerCfg) throws UnirestException {
         return post(EVENT_LOGGER.url(sep_url)).body(eventLoggerCfg).asString();
+    }
+    
+    public  List<NodeDescription> getNodeDescriptions() throws UnirestException{
+        HttpResponse<NodeDescription[]> asObject = post(NODE_LIST.url(sep_url)).asObject(NodeDescription[].class);
+        return Arrays.asList(asObject.getBody());
     }
 
     private static void initialise() {

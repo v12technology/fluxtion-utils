@@ -10,12 +10,18 @@ import com.fluxtion.learning.utils.monitoring.cooling.generated.RackCoolingSyste
 import com.fluxtion.runtime.plugin.container.client.SepManagementEngineClient;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
 import com.fluxtion.runtime.plugin.logging.YamlLogRecordListener;
+import com.fluxtion.runtime.plugin.reflection.NodeDescription;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
@@ -112,6 +118,15 @@ public class ContainerTest {
         assertEquals(2, accumulator.intValue());
     }
 
+    @Test
+    public void readNodeDescriptions() throws UnirestException{
+        List<NodeDescription> nodeDescriptions = client.getNodeDescriptions();
+        assertEquals(7, nodeDescriptions.size());
+        Set<String> actual = nodeDescriptions.stream().map(n -> n.getName()).collect(Collectors.toSet());
+        Set<String> expected = new HashSet(Arrays.asList("coolingContol", "rackMonitor", "server1", "server2","svrLD","svrNy", "svrTky"));
+        assertEquals(expected, actual);
+    }
+    
     @Test
     public void testEventFileLoad() throws FileNotFoundException {
         FileReader reader = new FileReader(new File("src/test/resources/eventlogs/log_test_1.yml"));

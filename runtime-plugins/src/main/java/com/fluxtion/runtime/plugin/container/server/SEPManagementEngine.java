@@ -8,11 +8,18 @@ package com.fluxtion.runtime.plugin.container.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fluxtion.runtime.lifecycle.EventHandler;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.NODE_LIST;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
+import com.fluxtion.runtime.plugin.tracing.Tracer;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import spark.Request;
 import spark.Response;
 import spark.Service;
@@ -57,6 +64,7 @@ public class SEPManagementEngine {
         spark.path("/:sep_processor", () -> {
             spark.post(TRACER.endPoint(), this::traceField);
             spark.post(EVENT_LOGGER.endPoint(), this::configureEventLogger);
+            spark.post(NODE_LIST.endPoint(), this::getNodeList);
         });
         spark.awaitInitialization();
     }
@@ -84,6 +92,13 @@ public class SEPManagementEngine {
         return handlerMap.getOrDefault(req.params(":sep_processor"), EventHandler.NULL_EVENTHANDLER);
     }
 
+    /**
+     * configures tracing of a field in a node
+     * @param req
+     * @param res
+     * @return
+     * @throws Exception 
+     */
     public Object traceField(Request req, Response res) throws Exception {
         EventHandler sep = getSep(req);
         String traceRequest = req.body();
@@ -92,12 +107,38 @@ public class SEPManagementEngine {
         return "trace set";
     }
 
+    /**
+     * configures the event logger auditor
+     * @param req
+     * @param res
+     * @return
+     * @throws Exception 
+     */
     public Object configureEventLogger(Request req, Response res) throws Exception {
         EventHandler sep = getSep(req);
         String traceRequest = req.body();
         EventLogConfig traceConfigEvent = jacksonObjectMapper.readValue(traceRequest, EventLogConfig.class);
         sep.onEvent(traceConfigEvent);
         return "event log configured";
+    }
+
+    public Object getNodeList(Request req, Response res) throws Exception {
+        EventHandler sep = getSep(req);
+        Object retValue = "no fields found";
+//        res.header(traceRequest, traceRequest);
+        Optional<Field> tracerField = FieldUtils.getAllFieldsList(sep.getClass()).stream()
+                .filter(f -> f.getType().equals(Tracer.class))
+                .findFirst();
+        if (tracerField.isPresent()) {
+            Field f = tracerField.get();
+            try {
+                Tracer tracer = (Tracer) f.get(sep);
+                retValue = jacksonObjectMapper.writeValueAsString(tracer.getNodeDescription());
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                Logger.getLogger(SEPManagementEngine.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return retValue;
     }
 
     public static Object getSepParameter(Request req, Response res) throws Exception {

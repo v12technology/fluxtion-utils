@@ -22,7 +22,10 @@ import com.fluxtion.api.annotations.EventHandler;
 import com.fluxtion.runtime.audit.Auditor;
 import com.fluxtion.runtime.plugin.auditing.DelegatingAuditor;
 import com.fluxtion.runtime.plugin.events.ListenerRegistrationEvent;
+import com.fluxtion.runtime.plugin.reflection.NodeDescription;
 import com.fluxtion.runtime.plugin.tracing.TraceEvents.PublishProperties;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,6 +45,7 @@ import java.util.Set;
 public class Tracer implements Auditor {
 
     private HashMap<String, Object> name2Node;
+    private HashMap<String, NodeDescription> name2NodeDescription;
     private Set<PropertyReader> onEventPropertyReaderSet;
     private Set<PropertyReader> allReaderSet;
     private Set<TraceRecordListener> listenerSet;
@@ -49,6 +53,7 @@ public class Tracer implements Auditor {
     @Override
     public void nodeRegistered(Object node, String nodeName) {
         name2Node.put(nodeName, node);
+        name2NodeDescription.put(nodeName, NodeDescription.buildDescription(nodeName, node));
     }
 
     @EventHandler
@@ -97,6 +102,10 @@ public class Tracer implements Auditor {
         }
     }
 
+    public Collection<NodeDescription> getNodeDescription() {
+        return Collections.unmodifiableCollection(name2NodeDescription.values());
+    }
+
     //helper methods
     public Tracer addConsolePublisher() {
         removeConsolePublisher();
@@ -134,6 +143,7 @@ public class Tracer implements Auditor {
     @Override
     public void init() {
         name2Node = new HashMap<>();
+        name2NodeDescription = new HashMap<>();
         onEventPropertyReaderSet = new HashSet<>();
         allReaderSet = new HashSet<>();
         listenerSet = new HashSet<>();
@@ -147,7 +157,6 @@ public class Tracer implements Auditor {
                     + "." + propertyRecord.getPropertyName()
                     + ": " + propertyRecord.getFormattedValue());
         }
-
     }
 
     public static Tracer addPropertyRecorder(com.fluxtion.runtime.lifecycle.EventHandler handler) {

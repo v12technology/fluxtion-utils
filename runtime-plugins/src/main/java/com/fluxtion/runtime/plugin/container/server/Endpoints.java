@@ -12,6 +12,7 @@ package com.fluxtion.runtime.plugin.container.server;
 public enum Endpoints {
     TRACER("trace"),
     EVENT_LOGGER("eventlogger"),
+    NODE_LIST("nodelist"),
     ;
 
     public String endPoint() {
