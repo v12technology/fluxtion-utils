@@ -27,6 +27,11 @@ package com.fluxtion.runtime.plugin.logging;
  */
 public interface EventLogSource {
 
+    /**
+     * A configured {@link EventLogger} this EventLogSource can write events to.
+     * 
+     * @param log log target
+     */
     void setLogger(EventLogger log);
 
 }

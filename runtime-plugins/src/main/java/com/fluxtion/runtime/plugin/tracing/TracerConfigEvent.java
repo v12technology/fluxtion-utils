@@ -38,6 +38,13 @@ public class TracerConfigEvent extends Event {
         this.publishOnDemand = publishOnDemand;
     }
 
+    public TracerConfigEvent(String nodeName, String fieldName, boolean record) {
+        this.nodeName = nodeName;
+        this.fieldName = fieldName;
+        this.record = record;
+        this.publishOnDemand = true;
+    }
+
     public TracerConfigEvent() {
     }
 

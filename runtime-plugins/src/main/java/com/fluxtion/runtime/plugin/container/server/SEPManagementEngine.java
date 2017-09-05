@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import spark.Request;
 import spark.Response;
-import static spark.Spark.*;
+import spark.Service;
 
 /**
  * A container for managing SEP via REST calls. SEP's are registered with a
@@ -32,9 +32,9 @@ public class SEPManagementEngine {
 
     private Map<String, EventHandler> handlerMap;
     private ObjectMapper jacksonObjectMapper = new ObjectMapper();
+    private Service spark;
 
     public SEPManagementEngine() {
-        System.out.println("SEPManagementEngine::cstrctr");
         handlerMap = new HashMap<>();
     }
 
@@ -45,32 +45,36 @@ public class SEPManagementEngine {
         init(4567);
     }
 
-
     /**
      * Initialises a the SEPManagementEngine and binds to user specified port.
+     *
      * @param port
      */
     public void init(int port) {
-        stop();
-        port(port);
-        path("/:sep_processor", () -> {
-            post(TRACER.endPoint(), this::traceField);
-            post(EVENT_LOGGER.endPoint(), this::configureEventLogger);
+//        stop();
+        spark = Service.ignite();
+        spark.port(port);
+        spark.path("/:sep_processor", () -> {
+            spark.post(TRACER.endPoint(), this::traceField);
+            spark.post(EVENT_LOGGER.endPoint(), this::configureEventLogger);
         });
+        spark.awaitInitialization();
     }
 
     /**
      * Stops the http server.
      */
     public void shutDown() {
-        stop();
+        spark.stop();
+        spark.awaitInitialization();
     }
 
     /**
      * Registers a SEP with this SEPManagementEngine. The supplied identifier
-     * must be unique or it will overwrite any existing 
+     * must be unique or it will overwrite any existing
+     *
      * @param req
-     * @return 
+     * @return
      */
     public void registerSep(EventHandler sep, String id) {
         handlerMap.put(id, sep);
@@ -87,7 +91,7 @@ public class SEPManagementEngine {
         sep.onEvent(traceConfigEvent);
         return "trace set";
     }
-    
+
     public Object configureEventLogger(Request req, Response res) throws Exception {
         EventHandler sep = getSep(req);
         String traceRequest = req.body();
@@ -95,7 +99,7 @@ public class SEPManagementEngine {
         sep.onEvent(traceConfigEvent);
         return "event log configured";
     }
-    
+
     public static Object getSepParameter(Request req, Response res) throws Exception {
         String sepName = req.params(":name");
         System.out.printf("getting props for[%s]%n", sepName);

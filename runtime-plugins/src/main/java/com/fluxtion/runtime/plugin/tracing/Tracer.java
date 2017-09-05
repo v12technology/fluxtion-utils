@@ -60,6 +60,14 @@ public class Tracer implements Auditor {
             listenerSet.remove(listener);
         }
     }
+    
+    public void addListener(TraceRecordListener listener){
+            listenerSet.add(listener);
+    }
+    
+    public void removeListener(TraceRecordListener listener){
+            listenerSet.remove(listener);
+    }
 
     @Override
     public void processingComplete() {

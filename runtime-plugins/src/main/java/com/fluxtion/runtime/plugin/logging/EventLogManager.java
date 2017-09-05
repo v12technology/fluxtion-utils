@@ -25,15 +25,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Manages and publishes a LogRecord to a LogRecordListener. The LogRecord is
- * hydrated from a list of EventLogSource's. The EventLogManager configures and
- * supplies a EventLogger for each registered EventLogSource. The output from
- * each EventLogSource is aggregated into the LogRecord and published.
+ * Manages and publishes a {@link LogRecord} to a {@link LogRecordListener}. The
+ * LogRecord is hydrated from a list of {@link EventLogSource}'s. An
+ * EventLogManager configures and supplies a EventLogger instance for each registered
+ * EventLogSource, via {@link EventLogSource#setLogger(com.fluxtion.runtime.plugin.logging.EventLogger)} . The output from each EventLogSource is aggregated into the
+ * LogRecord and published.
  *
  * By default all data in the LogRecord is cleared after a publish. Clearing
  * behaviour is controlled with clearAfterPublish flag.
  *
- * EventLogConfig events set the processingComplete level for each registered
+ * EventLogConfig events set the logging level for each registered
  * EventLogSource.
  *
  * @author Greg Higgins (greg.higgins@v12technology.com)

@@ -9,9 +9,16 @@ import com.fluxtion.learning.utils.monitoring.cooling.TemperatureEvent;
 import com.fluxtion.learning.utils.monitoring.cooling.generated.RackCoolingSystem;
 import com.fluxtion.runtime.plugin.container.client.SepManagementEngineClient;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
+import com.fluxtion.runtime.plugin.logging.YamlLogRecordListener;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
-import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.concurrent.atomic.LongAdder;
+import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -26,52 +33,90 @@ public class ContainerTest {
     private static final String svrLD = "svrLD";
     private static final String svrTky = "svrTky";
     private static final String external = "external";
+    private SEPManagementEngine container;
+    private static LongAdder count = new LongAdder();
 
-    @Test
-    public void traceProperty() throws UnirestException {
-        SEPManagementEngine container = new SEPManagementEngine();
-        container.init();
-        RackCoolingSystem rackCooler = new RackCoolingSystem();
+    static {
+        count.add(5876);
+    }
+    private RackCoolingSystem rackCooler;
+    private SepManagementEngineClient client;
+
+    @Before
+    public void initSpark() {
+        container = new SEPManagementEngine();
+        container.init(count.intValue());
+        rackCooler = new RackCoolingSystem();
         rackCooler.init();
-        rackCooler.logger.setLogSink(System.out::println);
-
-        //to do add a property tracer to validate testing
-        rackCooler.propertyTracer.addConsolePublisher();
         container.registerSep(rackCooler, "rackCooler");
-
-        SepManagementEngineClient client = new SepManagementEngineClient("http://localhost:4567", "rackCooler");
-//        client.setTrace(new TracerConfigEvent(server1, "temperature", true, false));
-//        client.setTrace(new TracerConfigEvent(server1, "temperatureBreach", true, false));
-//        client.setTrace(new TracerConfigEvent(server2, "temperature", true, false));
-//        client.setTrace(new TracerConfigEvent(server2, "temperatureBreach", true, false));
-//        client.setTrace(new TracerConfigEvent(svrNy, "temperature", true, false));
-//        client.setTrace(new TracerConfigEvent(svrNy, "temperatureBreach", true, false));
-        client.setTrace(new TracerConfigEvent("rackMonitor", "countWarning", true, false));
-        client.setTrace(new TracerConfigEvent("rackMonitor", "percentWarning", true, false));
-        client.setTrace(new TracerConfigEvent("coolingContol", "percentageWaterCooling", true, false));
-        client.setTrace(new TracerConfigEvent("coolingContol", "percentageAirCooling", true, false));
-        client.setTrace(new TracerConfigEvent("coolingContol", "airTemperature", true, false));
-
-        //send some temperatures
-        rackCooler.handleEvent(new TemperatureEvent(external, 25));
-        rackCooler.handleEvent(new TemperatureEvent(server1, 30));
-        rackCooler.handleEvent(new TemperatureEvent(server1, 39));
-        rackCooler.handleEvent(new TemperatureEvent(server1, 45));
-        rackCooler.handleEvent(new TemperatureEvent(server1, 49));
-        rackCooler.handleEvent(new TemperatureEvent(server2, 47));
-        rackCooler.handleEvent(new TemperatureEvent(svrNy, 56));
-        rackCooler.handleEvent(new TemperatureEvent(external, 32));
-        //kill EventLogger
-        client.configureEventLogger(new EventLogConfig(EventLogConfig.LogLevel.NONE));
-        client.configureEventLogger(new EventLogConfig("coolingContol", null, EventLogConfig.LogLevel.TRACE));
-        rackCooler.handleEvent(new TemperatureEvent(server1, 44));
-        rackCooler.handleEvent(new TemperatureEvent(server2, 40));
-        rackCooler.handleEvent(new TemperatureEvent(external, 25));
-        rackCooler.handleEvent(new TemperatureEvent(svrNy, 41));
-
+        client = new SepManagementEngineClient("http://localhost:" + count.intValue(), "rackCooler");
     }
 
-    private void print(HttpResponse<String> setTrace) {
-        System.out.println(setTrace.getBody());
+    @After
+    public void stopSpark() {
+        count.increment();
+        container.shutDown();
+    }
+
+    @Test
+    public void testEventLogControl() throws UnirestException {
+        final YamlLogRecordListener logListener = new YamlLogRecordListener();
+        rackCooler.logger.setLogSink(logListener);
+        //send an temperature events and count logs
+        rackCooler.handleEvent(new TemperatureEvent(external, 25));
+        rackCooler.handleEvent(new TemperatureEvent(server1, 30));
+        rackCooler.handleEvent(new TemperatureEvent(server1, 49));
+        rackCooler.handleEvent(new TemperatureEvent(external, 32));
+        assertEquals(4, logListener.getEventList().size());
+        //remove logging
+        client.configureEventLogger(new EventLogConfig(EventLogConfig.LogLevel.NONE));
+        logListener.getEventList().clear();
+        //send an temperature events and count logs
+        rackCooler.handleEvent(new TemperatureEvent(external, 25));
+        rackCooler.handleEvent(new TemperatureEvent(server1, 30));
+        rackCooler.handleEvent(new TemperatureEvent(server1, 49));
+        rackCooler.handleEvent(new TemperatureEvent(external, 32));
+        assertEquals(0, logListener.getEventList().size());
+    }
+
+    @Test
+    public void controlTracer() throws UnirestException {
+        client.setTrace(new TracerConfigEvent(server1, "temperature", true, false));
+        client.setTrace(new TracerConfigEvent(server1, "temperatureBreach", true, false));
+        client.setTrace(new TracerConfigEvent(server2, "temperature", true, false));
+        client.setTrace(new TracerConfigEvent(server2, "temperatureBreach", true, false));
+        client.setTrace(new TracerConfigEvent(svrNy, "temperature", true, false));
+        client.setTrace(new TracerConfigEvent(svrNy, "temperatureBreach", true, false));
+        //send an temperature events and count logs
+        LongAdder accumulator = new LongAdder();
+        rackCooler.propertyTracer.addListener((r) -> {
+            accumulator.increment();
+        });
+        accumulator.reset();
+        rackCooler.handleEvent(new TemperatureEvent(external, 25));
+        assertEquals(6, accumulator.intValue());
+
+        accumulator.reset();
+        rackCooler.handleEvent(new TemperatureEvent(server1, 30));
+        assertEquals(6, accumulator.intValue());
+
+        client.setTrace(new TracerConfigEvent(server1, "temperatureBreach", false));
+        client.setTrace(new TracerConfigEvent(server2, "temperature", false));
+        client.setTrace(new TracerConfigEvent(server2, "temperatureBreach", false));
+        client.setTrace(new TracerConfigEvent(svrNy, "temperature", false));
+        client.setTrace(new TracerConfigEvent(svrNy, "temperatureBreach", false));
+
+        accumulator.reset();
+        rackCooler.handleEvent(new TemperatureEvent(server1, 49));
+        rackCooler.handleEvent(new TemperatureEvent(external, 32));
+        assertEquals(2, accumulator.intValue());
+    }
+
+    @Test
+    public void testEventFileLoad() throws FileNotFoundException {
+        FileReader reader = new FileReader(new File("src/test/resources/eventlogs/log_test_1.yml"));
+        YamlLogRecordListener eventMarshaller = new YamlLogRecordListener();
+        eventMarshaller.loadFromFile(reader);
+        assertEquals(2, eventMarshaller.getEventList().size());
     }
 }
