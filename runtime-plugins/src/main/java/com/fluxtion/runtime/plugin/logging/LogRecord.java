@@ -127,7 +127,14 @@ public class LogRecord {
         }
     }
 
-    public void terminateRecord() {
+    /**
+     * complete record processing, the return value indicates if any log values 
+     * were written.
+     * 
+     * @return flag to indicate properties were logged
+     */
+    public boolean terminateRecord() {
+        boolean logged = !firstProp;
         if (this.sourceId != null) {
             sb.append("}");
         }
@@ -135,6 +142,7 @@ public class LogRecord {
         sb.append("\n}");
         firstProp = true;
         sourceId = null;
+        return logged;
     }
 
     @Override

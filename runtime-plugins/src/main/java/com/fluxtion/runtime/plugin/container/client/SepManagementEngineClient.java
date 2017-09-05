@@ -6,15 +6,19 @@
 package com.fluxtion.runtime.plugin.container.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
+import com.fluxtion.runtime.plugin.logging.EventLogConfig;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.ObjectMapper;
 import com.mashape.unirest.http.Unirest;
+import static com.mashape.unirest.http.Unirest.post;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
 
 /**
- *
+ * 
  * @author greg
  */
 public class SepManagementEngineClient {
@@ -33,16 +37,16 @@ public class SepManagementEngineClient {
         this.sep_url = root_url + "/" + sepName; 
     }
 
-    public static void main(String[] args) throws UnirestException, IOException {
-        SepManagementEngineClient client = new SepManagementEngineClient("http://localhost:4567", "SEP_PROCESSOR_1");
-        HttpResponse<String> resp = client.setTrace(new TracerConfigEvent("boiler", "burnerStatus", true, false));
-        System.out.println(resp.getBody());
+    public void shutDown() throws IOException{
         Unirest.shutdown();
     }
 
     public HttpResponse<String> setTrace(TracerConfigEvent traceEvent) throws UnirestException {
-        return Unirest.post(sep_url + "/trace")
-                .body(traceEvent).asString();
+        return post(TRACER.url(sep_url)).body(traceEvent).asString();
+    }
+
+    public HttpResponse<String> configureEventLogger(EventLogConfig eventLoggerCfg) throws UnirestException {
+        return post(EVENT_LOGGER.url(sep_url)).body(eventLoggerCfg).asString();
     }
 
     private static void initialise() {

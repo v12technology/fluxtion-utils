@@ -57,7 +57,7 @@ public class EventLogManager implements Auditor {
 
     @EventHandler(propagate = false)
     public void calculationLogConfig(EventLogConfig newConfig) {
-        if (logRecord.groupingId != null && logRecord.groupingId.equals(newConfig.getGroupId())) {
+        if (logRecord.groupingId == null || logRecord.groupingId.equals(newConfig.getGroupId())) {
             System.out.println("CalculationLogManager::updateLogConfig");
             node2Logger.computeIfPresent(newConfig.getSourceId(), (t, u) -> {
                 u.setLevel(newConfig.getLevel());
@@ -84,8 +84,9 @@ public class EventLogManager implements Auditor {
 //    @AfterEvent
     @Override
     public void processingComplete() {
-        logRecord.terminateRecord();
-        sink.processCalculationRecord(logRecord);
+        if (logRecord.terminateRecord()) {
+            sink.processCalculationRecord(logRecord);
+        }
         if (clearAfterPublish) {
             logRecord.clear();
         }
@@ -97,7 +98,8 @@ public class EventLogManager implements Auditor {
         logRecord = new LogRecord();
         node2Logger = new HashMap<>();
         clearAfterPublish = true;
-        sink = (l) -> {};
+        sink = (l) -> {
+        };
     }
 
     @Override

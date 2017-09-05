@@ -8,6 +8,7 @@ package com.fluxtion.runtime.plugin.container.server;
 import com.fluxtion.learning.utils.monitoring.cooling.TemperatureEvent;
 import com.fluxtion.learning.utils.monitoring.cooling.generated.RackCoolingSystem;
 import com.fluxtion.runtime.plugin.container.client.SepManagementEngineClient;
+import com.fluxtion.runtime.plugin.logging.EventLogConfig;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -39,12 +40,12 @@ public class ContainerTest {
         container.registerSep(rackCooler, "rackCooler");
 
         SepManagementEngineClient client = new SepManagementEngineClient("http://localhost:4567", "rackCooler");
-        client.setTrace(new TracerConfigEvent(server1, "temperature", true, false));
-        client.setTrace(new TracerConfigEvent(server1, "temperatureBreach", true, false));
-        client.setTrace(new TracerConfigEvent(server2, "temperature", true, false));
-        client.setTrace(new TracerConfigEvent(server2, "temperatureBreach", true, false));
-        client.setTrace(new TracerConfigEvent(svrNy, "temperature", true, false));
-        client.setTrace(new TracerConfigEvent(svrNy, "temperatureBreach", true, false));
+//        client.setTrace(new TracerConfigEvent(server1, "temperature", true, false));
+//        client.setTrace(new TracerConfigEvent(server1, "temperatureBreach", true, false));
+//        client.setTrace(new TracerConfigEvent(server2, "temperature", true, false));
+//        client.setTrace(new TracerConfigEvent(server2, "temperatureBreach", true, false));
+//        client.setTrace(new TracerConfigEvent(svrNy, "temperature", true, false));
+//        client.setTrace(new TracerConfigEvent(svrNy, "temperatureBreach", true, false));
         client.setTrace(new TracerConfigEvent("rackMonitor", "countWarning", true, false));
         client.setTrace(new TracerConfigEvent("rackMonitor", "percentWarning", true, false));
         client.setTrace(new TracerConfigEvent("coolingContol", "percentageWaterCooling", true, false));
@@ -57,9 +58,16 @@ public class ContainerTest {
         rackCooler.handleEvent(new TemperatureEvent(server1, 39));
         rackCooler.handleEvent(new TemperatureEvent(server1, 45));
         rackCooler.handleEvent(new TemperatureEvent(server1, 49));
+        rackCooler.handleEvent(new TemperatureEvent(server2, 47));
+        rackCooler.handleEvent(new TemperatureEvent(svrNy, 56));
         rackCooler.handleEvent(new TemperatureEvent(external, 32));
+        //kill EventLogger
+        client.configureEventLogger(new EventLogConfig(EventLogConfig.LogLevel.NONE));
+        client.configureEventLogger(new EventLogConfig("coolingContol", null, EventLogConfig.LogLevel.TRACE));
         rackCooler.handleEvent(new TemperatureEvent(server1, 44));
+        rackCooler.handleEvent(new TemperatureEvent(server2, 40));
         rackCooler.handleEvent(new TemperatureEvent(external, 25));
+        rackCooler.handleEvent(new TemperatureEvent(svrNy, 41));
 
     }
 
