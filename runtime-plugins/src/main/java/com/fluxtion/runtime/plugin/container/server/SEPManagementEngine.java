@@ -8,6 +8,7 @@ package com.fluxtion.runtime.plugin.container.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fluxtion.runtime.lifecycle.EventHandler;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPHML;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.NODE_LIST;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.ClassPathUtils;
 import spark.Request;
 import spark.Response;
 import spark.Service;
@@ -37,8 +39,8 @@ import spark.Service;
  */
 public class SEPManagementEngine {
 
-    private Map<String, EventHandler> handlerMap;
-    private ObjectMapper jacksonObjectMapper = new ObjectMapper();
+    private final Map<String, EventHandler> handlerMap;
+    private final ObjectMapper jacksonObjectMapper = new ObjectMapper();
     private Service spark;
 
     public SEPManagementEngine() {
@@ -65,6 +67,7 @@ public class SEPManagementEngine {
             spark.post(TRACER.endPoint(), this::traceField);
             spark.post(EVENT_LOGGER.endPoint(), this::configureEventLogger);
             spark.post(NODE_LIST.endPoint(), this::getNodeList);
+            spark.post(GRAPHML.endPoint(), this::getGraphMl);
         });
         spark.awaitInitialization();
     }
@@ -81,8 +84,8 @@ public class SEPManagementEngine {
      * Registers a SEP with this SEPManagementEngine. The supplied identifier
      * must be unique or it will overwrite any existing
      *
-     * @param req
-     * @return
+     * @param sep
+     * @param id
      */
     public void registerSep(EventHandler sep, String id) {
         handlerMap.put(id, sep);
@@ -139,6 +142,15 @@ public class SEPManagementEngine {
             }
         }
         return retValue;
+    }
+    
+    public Object getGraphMl(Request req, Response res){
+        EventHandler sep = getSep(req);
+        String ret = "";
+        String fqp = ClassPathUtils.toFullyQualifiedPath(sep.getClass(), sep.getClass().getSimpleName() + ".graphml");
+        System.out.println("fqp:" + fqp);
+        sep.getClass().getClassLoader().getResourceAsStream(fqp);
+        return ret;
     }
 
     public static Object getSepParameter(Request req, Response res) throws Exception {

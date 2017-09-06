@@ -12,6 +12,7 @@ import com.fluxtion.runtime.plugin.logging.EventLogConfig;
 import com.fluxtion.runtime.plugin.logging.YamlLogRecordListener;
 import com.fluxtion.runtime.plugin.reflection.NodeDescription;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
+import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -54,9 +55,10 @@ public class ContainerTest {
         container.init(count.intValue());
         rackCooler = new RackCoolingSystem();
         rackCooler.init();
-        container.registerSep(rackCooler, "rackCooler");
+        container.registerSep(rackCooler, RACK_COOLER);
         client = new SepManagementEngineClient("http://localhost:" + count.intValue(), "rackCooler");
     }
+    private static final String RACK_COOLER = "rackCooler";
 
     @After
     public void stopSpark() {
@@ -133,5 +135,11 @@ public class ContainerTest {
         YamlLogRecordListener eventMarshaller = new YamlLogRecordListener();
         eventMarshaller.loadFromFile(reader);
         assertEquals(2, eventMarshaller.getEventList().size());
+    }
+    
+    @Test
+    public void testGetGraphMl() throws UnirestException{
+        HttpResponse<String> nodeDescriptions = client.getGraphMl(RACK_COOLER);
+        System.out.println("graphml:" + nodeDescriptions.getBody());
     }
 }

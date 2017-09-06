@@ -7,6 +7,7 @@ package com.fluxtion.runtime.plugin.container.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPHML;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.NODE_LIST;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
@@ -57,7 +58,11 @@ public class SepManagementEngineClient {
         HttpResponse<NodeDescription[]> asObject = post(NODE_LIST.url(sep_url)).asObject(NodeDescription[].class);
         return Arrays.asList(asObject.getBody());
     }
-
+    
+    public HttpResponse<String> getGraphMl(String sepName) throws UnirestException {
+        return post(GRAPHML.url(sep_url)).asString();
+    }
+    
     private static void initialise() {
         Unirest.setObjectMapper(new ObjectMapper() {
             private com.fasterxml.jackson.databind.ObjectMapper jacksonObjectMapper

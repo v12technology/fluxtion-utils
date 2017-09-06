@@ -30,20 +30,20 @@ public class TracerConfigEvent extends Event {
     /**
      * The node name to extract properties from
      */
-    private final String nodeName;
+    private String nodeName;
     /**
      * The field name to extract value from
      */
-    private final String fieldName;
+    private String fieldName;
     /**
      * Add or remove trace - false = remove trace
      */
-    private final boolean record;
+    private boolean record;
     /**
      * publish trace record on every event or on demand, using PublishProperties
      * event
      */
-    private final boolean publishOnDemand;
+    private boolean publishOnDemand;
 
     public TracerConfigEvent(String nodeName, String fieldName, boolean record, boolean publishOnDemand) {
         this.nodeName = nodeName;

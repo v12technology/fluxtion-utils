@@ -13,6 +13,7 @@ public enum Endpoints {
     TRACER("trace"),
     EVENT_LOGGER("eventlogger"),
     NODE_LIST("nodelist"),
+    GRAPHML("graphml"),
     ;
 
     public String endPoint() {
