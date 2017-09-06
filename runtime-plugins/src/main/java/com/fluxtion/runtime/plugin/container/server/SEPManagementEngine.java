@@ -14,10 +14,13 @@ import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
 import com.fluxtion.runtime.plugin.tracing.Tracer;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -97,10 +100,11 @@ public class SEPManagementEngine {
 
     /**
      * configures tracing of a field in a node
+     *
      * @param req
      * @param res
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
     public Object traceField(Request req, Response res) throws Exception {
         EventHandler sep = getSep(req);
@@ -112,10 +116,11 @@ public class SEPManagementEngine {
 
     /**
      * configures the event logger auditor
+     *
      * @param req
      * @param res
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
     public Object configureEventLogger(Request req, Response res) throws Exception {
         EventHandler sep = getSep(req);
@@ -143,13 +148,20 @@ public class SEPManagementEngine {
         }
         return retValue;
     }
-    
-    public Object getGraphMl(Request req, Response res){
+
+    public Object getGraphMl(Request req, Response res) throws IOException {
         EventHandler sep = getSep(req);
         String ret = "";
         String fqp = ClassPathUtils.toFullyQualifiedPath(sep.getClass(), sep.getClass().getSimpleName() + ".graphml");
         System.out.println("fqp:" + fqp);
-        sep.getClass().getClassLoader().getResourceAsStream(fqp);
+        InputStream is = sep.getClass().getClassLoader().getResourceAsStream(fqp);
+        if (is == null) {
+            System.out.println("could  ot locate graphml:" + fqp);
+        } else {
+            try (Scanner scanner = new Scanner(is)) {
+                ret = scanner.useDelimiter("\\A").next();
+            }
+        }
         return ret;
     }
 
