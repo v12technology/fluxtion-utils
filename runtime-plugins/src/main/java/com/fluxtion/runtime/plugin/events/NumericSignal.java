@@ -21,27 +21,35 @@ package com.fluxtion.runtime.plugin.events;
 import com.fluxtion.runtime.event.Event;
 
 /**
- * NumericSignal is an event that provides a generic method for nodes to receive
- * numeric values without having to define bespoke events for each type
- * of signal.
  *
- * NumericSignal has a filter string, which allows the receiver to filter
- * which NumericSignal it should be informed of. A node marks a method with a
- * filtered EventHandler annotation to receive a control message:
+ * NumericSignal, an event providing a generic method to publish numeric values
+ * to event handlers. NumericSignal remove the need to define bespoke numeric
+ * events for each type of signal by using a named signal.
+ * <p>
+ *
+ * The NumericSignal name filters the events a receiver will process. The
+ * generated SEP provide all filtering logic within the generated dispatch. A
+ * node marks a method with a filtered EventHandler annotation as a receiving
+ * method:
  *
  * <pre>
  *
- *{@literal @}EventHandler(filterString = "filterString", propagate = false)
+ *{@literal @}EventHandler(filterString = "filterString")
  * public void numericUpdate(NumericSignal numericSignal){
  *
  * }
  * </pre>
- * 
- * Using the propagate=false will prevent a signal from starting an
- * event chain for any dependent nodes.
  *
- * The NumericSignal also provides an optional enable flag the
- * receiver can inspect.
+ * Using the propagate=false will ensure the event is consumed by the signal
+ * handler. Swallowing an event prevents a control signal from executing an
+ * event chain for any dependent nodes:
+ * <p>
+ *
+ * <pre>
+ *{@literal @}EventHandler(filterString = "filterString", propagate = false)
+ * </pre>
+ *
+ * The receiver can use {@link #value()} method to access the value.
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */

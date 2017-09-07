@@ -21,14 +21,15 @@ package com.fluxtion.runtime.plugin.events;
 import com.fluxtion.runtime.event.Event;
 
 /**
- * BooleanSignal, an event providing a generic method for nodes to receive
- * control signals filtered by name. BooleanSignals remove the need to define
- * bespoke control events for each type of signal by using a named signal.
+ * BooleanSignal, an event providing a generic method to publish control signals
+ * to event handlers. BooleanSignals remove the need to define bespoke control
+ * events for each type of signal by using a named signal.
  * <p>
  *
  * The BooleanSignal name filters the events a receiver will process. The
- * generated SEP will provide all filtering logic. A node marks a method with a
- * filtered EventHandler annotation as a receiving method:
+ * generated SEP provide all filtering logic within the generated dispatch. A
+ * node marks a method with a filtered EventHandler annotation as a receiving
+ * method:
  *
  * <pre>
  *
@@ -48,7 +49,7 @@ import com.fluxtion.runtime.event.Event;
  * </pre>
  *
  * The BooleanSignal also provides an optional enable flag the receiver can
- * inspect.
+ * inspect, accessed via {@link #isEnabled() }.
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
@@ -61,7 +62,7 @@ public class BooleanSignal extends Event {
         this.value = enabled;
     }
 
-    public boolean value() {
+    public boolean isEnabled() {
         return value;
     }
 
