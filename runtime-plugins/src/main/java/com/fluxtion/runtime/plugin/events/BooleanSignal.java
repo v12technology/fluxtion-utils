@@ -21,24 +21,31 @@ package com.fluxtion.runtime.plugin.events;
 import com.fluxtion.runtime.event.Event;
 
 /**
- * BooleanSignal is an event that provides a generic method for nodes to receive
- * control signals without having to define bespoke control events for each type
- * of signal.
+ * BooleanSignal, an event providing a generic method for nodes to receive
+ * control signals filtered by name. BooleanSignals remove the need to define
+ * bespoke control events for each type of signal by using a named signal.
+ * <p>
  *
- * The BooleanSignal has a filter string, which allows the receiver to filter
- * which ControlSignals it should be informed of. A node marks a method with a
- * filtered EventHandler annotation to receive a control message:
+ * The BooleanSignal name filters the events a receiver will process. The
+ * generated SEP will provide all filtering logic. A node marks a method with a
+ * filtered EventHandler annotation as a receiving method:
  *
  * <pre>
  *
- * EventHandler(filterString = "filterString", propogate = false)
+ *{@literal @}EventHandler(filterString = "filterString")
  * public void controlMethod(BooleanSignal publishSignal){
  *
  * }
  * </pre>
  *
- * Using the propogate=false will prevent a control signal from starting an
- * event chain for any dependent nodes.
+ * Using the propagate=false will ensure the event is consumed by the signal
+ * handler. Swallowing an event prevents a control signal from executing an
+ * event chain for any dependent nodes:
+ * <p>
+ *
+ * <pre>
+ *{@literal @}EventHandler(filterString = "filterString", propagate = false)
+ * </pre>
  *
  * The BooleanSignal also provides an optional enable flag the receiver can
  * inspect.
