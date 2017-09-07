@@ -33,12 +33,19 @@ import java.util.Set;
 
 /**
  *
- * A Tracer implements Auditor to provide property tracing functionality from
- * any node in a SEP and publishes to a registered TraceRecordListeners.
+ * A Tracer implements Auditor interface providing real-time property tracing
+ * functionality. A field from any node in a SEP can be traced and published to
+ * registered TraceRecordListeners.<p>
  *
- * Individual property traces are configured with a call to recorderControl(
- * TracerConfigEvent propertyRecorderControl). Tracing can be on demand or
- * on any event update, individually configured for each property traced.
+ * Individual property traces are configured by sending a
+ * {@link TracerConfigEvent} to the SEP with a Tracer built in.<p>
+ *
+ * Tracing can be on demand or on any event update:
+ * <ul>
+ * <li>demand: the user must send a {@link PublishProperties} event to trace and publish.
+ * <li>event update: a trace will be published on any event processed.
+ * </ul>
+ * Traces are individually configured for each property, using a {@link TracerConfigEvent}.
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
@@ -65,13 +72,13 @@ public class Tracer implements Auditor {
             listenerSet.remove(listener);
         }
     }
-    
-    public void addListener(TraceRecordListener listener){
-            listenerSet.add(listener);
+
+    public void addListener(TraceRecordListener listener) {
+        listenerSet.add(listener);
     }
-    
-    public void removeListener(TraceRecordListener listener){
-            listenerSet.remove(listener);
+
+    public void removeListener(TraceRecordListener listener) {
+        listenerSet.remove(listener);
     }
 
     @Override
