@@ -20,7 +20,7 @@ package com.fluxtion.runtime.plugin.events;
 
 /**
  * A generic listener registration event, extends {@link GenericEvent}. To
- * receive type filtered events, the event handler annotates a method similar to
+ * receive events filtered by type the event handler annotates a method similar to
  * that below:
  *
  *
