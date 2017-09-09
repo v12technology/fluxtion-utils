@@ -59,6 +59,6 @@ public class WorkQueueTest {
             public String get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
-        }
+        };
     }
 }
