@@ -140,6 +140,5 @@ public class ContainerTest {
     @Test
     public void testGetGraphMl() throws UnirestException{
         HttpResponse<String> nodeDescriptions = client.getGraphMl(RACK_COOLER);
-        System.out.println("graphml:" + nodeDescriptions.getBody());
     }
 }

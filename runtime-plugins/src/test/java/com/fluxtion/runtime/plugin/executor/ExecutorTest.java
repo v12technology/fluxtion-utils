@@ -17,6 +17,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -24,9 +26,11 @@ import org.junit.Test;
  */
 public class ExecutorTest {
 
+    Logger logger = LoggerFactory.getLogger(ExecutorTest.class);
+    
     @Test(expected = IllegalStateException.class)
     public void startStopDefault() {
-        System.out.println("startStopDefault");
+        logger.info("startStopDefault");
         SepExecutor sepExecutor = new SepExecutor(EventHandler.NULL_EVENTHANDLER, "sample");
         sepExecutor.shutDown();
         sepExecutor.submit(() -> null);
@@ -34,7 +38,7 @@ public class ExecutorTest {
 
     @Test(expected = IllegalStateException.class)
     public void startStopBusy() {
-        System.out.println("startStopBusy");
+        logger.info("startStopBusy");
         SepExecutor sepExecutor = new SepExecutor(EventHandler.NULL_EVENTHANDLER, "sample");
         sepExecutor.busySpin();
         sepExecutor.shutDown();
@@ -43,7 +47,7 @@ public class ExecutorTest {
 
     @Test(expected = IllegalStateException.class)
     public void startStopLongSleep() {
-        System.out.println("startStopLongSleep");
+        logger.info("startStopLongSleep");
         SepExecutor sepExecutor = new SepExecutor(EventHandler.NULL_EVENTHANDLER, "sample");
         sepExecutor.sleep(780_000_000);
         sepExecutor.shutDown();
@@ -52,7 +56,7 @@ public class ExecutorTest {
 
     @Test(expected = IllegalStateException.class)
     public void startStopWaitOnTaskQueue() {
-        System.out.println("startStopWaitOnTaskQueue");
+        logger.info("startStopWaitOnTaskQueue");
         SepExecutor sepExecutor = new SepExecutor(EventHandler.NULL_EVENTHANDLER, "sample");
         sepExecutor.waitOnTaskQueue();
         sepExecutor.shutDown();
@@ -61,9 +65,10 @@ public class ExecutorTest {
 
     @Test
     public void singleThreadedAccessEventSource() throws InterruptedException, ExecutionException {
-        System.out.println("singleThreadedAccessEventSource");
+        logger.info("singleThreadedAccessEventSource");
         String[] ans = new String[1];
         SepExecutor sepExecutor = new SepExecutor(e -> {
+            logger.info("invoking");
             ans[0] = Thread.currentThread().getName();
         }, "sample");
         MyEventSource source = new MyEventSource();
@@ -71,6 +76,7 @@ public class ExecutorTest {
         sepExecutor.busySpin();
         Assert.assertNull(ans[0]);
         source.createEventFlag.set(true);
+        Thread.sleep(1);
         sepExecutor.shutDown();
         Assert.assertNotNull(ans[0]);
         Assert.assertEquals("sample", ans[0]);
@@ -78,7 +84,7 @@ public class ExecutorTest {
 
     @Test
     public void singleThreadedAccessTask() throws InterruptedException, ExecutionException {
-        System.out.println("singleThreadedAccessTask");
+        logger.info("singleThreadedAccessTask");
         SepExecutor sepExecutor = new SepExecutor(EventHandler.NULL_EVENTHANDLER, "sample");
         sepExecutor.waitOnTaskQueue();
         String threadName = sepExecutor.submit(() -> Thread.currentThread().getName()).get();
@@ -88,7 +94,7 @@ public class ExecutorTest {
 
     @Test
     public void waitStrategy() throws InterruptedException, ExecutionException {
-        System.out.println("waitStrategy");
+        logger.info("waitStrategy");
         String[] ans = new String[1];
         SepExecutor sepExecutor = new SepExecutor(e -> {
             ans[0] = Thread.currentThread().getName();
@@ -99,11 +105,12 @@ public class ExecutorTest {
         Assert.assertNull(ans[0]);
         source.createEventFlag.set(true);
         sepExecutor.submit(() -> null).get();
+        Thread.sleep(1);
         Assert.assertNotNull(ans[0]);
         Assert.assertEquals("sample", ans[0]);
         sepExecutor.shutDown();
     }
-
+    
     private static class MyEventSource implements EventSource {
 
         AtomicBoolean createEventFlag = new AtomicBoolean(false);

@@ -23,6 +23,8 @@ import com.fluxtion.runtime.audit.Auditor;
 import com.fluxtion.runtime.event.Event;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages and publishes a {@link LogRecord} to a {@link LogRecordListener}. The
@@ -45,6 +47,7 @@ public class EventLogManager implements Auditor {
     private LogRecord logRecord;
     private Map<String, EventLogger> node2Logger;
     private boolean clearAfterPublish;
+    private static Logger LOGGER = LoggerFactory.getLogger(EventLogManager.class);
 
     @Override
     public void nodeRegistered(Object node, String nodeName) {
@@ -59,7 +62,7 @@ public class EventLogManager implements Auditor {
     @EventHandler(propagate = false)
     public void calculationLogConfig(EventLogConfig newConfig) {
         if (logRecord.groupingId == null || logRecord.groupingId.equals(newConfig.getGroupId())) {
-            System.out.println("CalculationLogManager::updateLogConfig");
+            LOGGER.info("updating event log config:{}", newConfig);
             node2Logger.computeIfPresent(newConfig.getSourceId(), (t, u) -> {
                 u.setLevel(newConfig.getLevel());
                 return u;

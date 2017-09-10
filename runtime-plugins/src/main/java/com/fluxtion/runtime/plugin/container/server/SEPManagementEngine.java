@@ -21,10 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.ClassPathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
 import spark.Service;
@@ -45,6 +45,7 @@ public class SEPManagementEngine {
     private final Map<String, EventHandler> handlerMap;
     private final ObjectMapper jacksonObjectMapper = new ObjectMapper();
     private Service spark;
+    private static Logger LOGGER  = LoggerFactory.getLogger(SEPManagementEngine.class);
 
     public SEPManagementEngine() {
         handlerMap = new HashMap<>();
@@ -143,7 +144,7 @@ public class SEPManagementEngine {
                 Tracer tracer = (Tracer) f.get(sep);
                 retValue = jacksonObjectMapper.writeValueAsString(tracer.getNodeDescription());
             } catch (IllegalArgumentException | IllegalAccessException ex) {
-                Logger.getLogger(SEPManagementEngine.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.error("problem accessing node list", ex);
             }
         }
         return retValue;
@@ -153,10 +154,9 @@ public class SEPManagementEngine {
         EventHandler sep = getSep(req);
         String ret = "";
         String fqp = ClassPathUtils.toFullyQualifiedPath(sep.getClass(), sep.getClass().getSimpleName() + ".graphml");
-        System.out.println("fqp:" + fqp);
         InputStream is = sep.getClass().getClassLoader().getResourceAsStream(fqp);
         if (is == null) {
-            System.out.println("could  ot locate graphml:" + fqp);
+            LOGGER.info("could not locate graphml:{}", fqp);
         } else {
             try (Scanner scanner = new Scanner(is)) {
                 ret = scanner.useDelimiter("\\A").next();
@@ -165,20 +165,4 @@ public class SEPManagementEngine {
         return ret;
     }
 
-    public static Object getSepParameter(Request req, Response res) throws Exception {
-        String sepName = req.params(":name");
-        System.out.printf("getting props for[%s]%n", sepName);
-        return "property value";
-    }
-
-    public static Object setSepParameter(Request req, Response res) throws Exception {
-        String sepName = req.params(":name");
-        System.out.println("body:" + req.body());
-        System.out.println("params:" + req.params());
-        System.out.println("queryParams:" + req.queryParams());
-        System.out.printf("setting props via queryParams for[%s] - ", sepName);
-        System.out.printf("[name:%s]%n", req.queryParams("name"));
-//        System.out.println("request.queryParams(\"name\"):" + req.queryParams("name"));
-        return "property set";
-    }
 }

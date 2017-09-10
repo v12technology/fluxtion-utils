@@ -93,4 +93,9 @@ public class EventLogConfig extends Event {
 
     }
 
+    @Override
+    public String toString() {
+        return "EventLogConfig{" + "level=" + level + ", sourceId=" + sourceId + ", groupId=" + groupId + '}';
+    }
+    
 }

@@ -60,11 +60,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
-public class SepExecutor {
+public class SepExecutor implements AsyncEventHandler {
 
     private final EventHandler targetSep;
     private final String name;
     private final BlockingQueue<FutureTask> queue = new ArrayBlockingQueue<>(10);
+    private final BlockingQueue<Event> defaultEventQueue = new ArrayBlockingQueue<>(100);
     private final AtomicBoolean run = new AtomicBoolean(true);
     private final AtomicBoolean waitiOnTask = new AtomicBoolean(false);
 
@@ -87,7 +88,9 @@ public class SepExecutor {
         this.name = name;
         sourceList = new ArrayList<>();
         sourceArray = new EventSourceDecorator[0];
-        sleepMicros = new AtomicLong(100 * 1000);
+        sleepMicros = new AtomicLong(scheduling.getSleep());
+        sourceList.add(new EventSourceDecorator(new DefaultEventSource()));
+        sourceArray = sourceList.toArray(sourceArray);
         switch (scheduling.getStrategy()) {
             case BUSY:
                 busySpin();
@@ -102,7 +105,7 @@ public class SepExecutor {
         start();
     }
 
-    public void registerEventSource(EventSource eventSource, String name) {
+    public final void registerEventSource(EventSource eventSource, String name) {
         checkState();
         try {
             submit(() -> {
@@ -192,6 +195,7 @@ public class SepExecutor {
      * @param task The task to interact with the SEP
      * @return The Future value of the task
      */
+    @Override
     public <T> Future<T> submit(Callable<T> task) {
         loggerRequests.debug("submitting task");
         checkState();
@@ -199,7 +203,22 @@ public class SepExecutor {
         queue.add(ft);
         return ft;
     }
+    
+    @Override
+    public EventHandler delegate() {
+        return targetSep;
+    }
 
+    @Override
+    public void onEvent(Event e) {
+        try {
+            defaultEventQueue.put(e);
+        } catch (InterruptedException ex) {
+            loggerRequests.error("unable to post event to defaultEventQueue", ex);
+            throw new RuntimeException(ex);
+        }
+    }
+    
     private void checkState() {
         if (!run.get()) {
             throw new IllegalStateException("cannot process requests, SepExecutor is stopped");
@@ -244,6 +263,15 @@ public class SepExecutor {
             }
         };
         eventLoopThread.start();
+    }
+
+    private class DefaultEventSource implements EventSource {
+
+        @Override
+        public Event read() {
+            return defaultEventQueue.poll();
+        }
+
     }
 
     /**
