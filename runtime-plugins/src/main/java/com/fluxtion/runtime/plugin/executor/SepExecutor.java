@@ -27,6 +27,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
@@ -44,10 +46,10 @@ import org.slf4j.LoggerFactory;
  * <li>Tasks can be submitted for processing {@link #submit(Callable) }
  * <li>Registered {@link EventSource} are read and Events are processed by the
  * registered SEP.
- * <li>Control of scheduling policy:
+ * <li>Multiple scheduling policies:
  * <ul>
  * <li>setSleepMicros : sleep between each service loop
- * <li>useBusySpin : no sleep between each service loop, keep a cpu 100% busy
+ * <li>busySpin : no sleep between each service loop, keep a cpu 100% busy
  * <li>waitOnTaskQueue : service loop wakes when a task is submitted
  * </ul>
  * </ul>
@@ -73,13 +75,28 @@ public class SepExecutor {
     private EventSourceDecorator[] sourceArray;
 
     public SepExecutor(EventHandler targetSep, String name) {
+        this(targetSep, name, SchedulingConfig.sleepInMillis(100));
+    }
+
+    public SepExecutor(EventHandler targetSep, String name, SchedulingConfig scheduling) {
         loggerRequests = LoggerFactory.getLogger("sep." + name + ".put");
         loggerTasks = LoggerFactory.getLogger("sep." + name + ".take");
         this.targetSep = targetSep;
         this.name = name;
-        sleepMicros = new AtomicLong(100 * 1000);
         sourceList = new ArrayList<>();
         sourceArray = new EventSourceDecorator[0];
+        sleepMicros = new AtomicLong(100 * 1000);
+        switch (scheduling.getStrategy()) {
+            case BUSY:
+                busySpin();
+                break;
+            case SLEEP:
+                sleep(scheduling.getSleep());
+                break;
+            case WAIT:
+                waitOnTaskQueue();
+                break;
+        }
         start();
     }
 
@@ -94,38 +111,60 @@ public class SepExecutor {
 
     public void shutDown() {
         loggerRequests.info("shutting down");
-        run.lazySet(false);
-        useBusySpin();
-        submit(() -> null);
+        try {
+            Future<Object> submit = submit(() -> {
+                queue.forEach(f -> f.cancel(true));
+                queue.clear();
+                return null;
+            });
+            waitOnTaskQueue();
+            run.set(false);
+            submit.get(3, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException ex) {
+            loggerRequests.error("problem shutting down event loop", ex);
+        }
     }
 
     /**
      * Service loop will pause between each iteration. If value is &lt;= 0 this
-     * is equivalent to calling {@link #useBusySpin() }
+     * is equivalent to calling {@link #busySpin() }
      *
      * @param sleepMicros the pause between loop iterations
      */
-    public void setSleepMicros(long sleepMicros) {
+    private void setSleepMicros(long sleepMicros) {
         sleepMicros = sleepMicros < 0 ? 0 : sleepMicros;
-        loggerRequests.info("setting scheduling: setSleepMicros {}", sleepMicros);
+        loggerRequests.info("setting setSleepMicros: {}", sleepMicros);
         this.sleepMicros.lazySet(sleepMicros);
+    }
+
+    /**
+     * Service loop will pause between each iteration. If value is &lt;= 0 this
+     * is equivalent to calling {@link #busySpin() }
+     *
+     * @param sleepMicros the pause between loop iterations
+     */
+    public final void sleep(long sleepMicros) {
+        loggerRequests.info("scheduling: SLEEP");
+        waitiOnTask.lazySet(false);
+        setSleepMicros(sleepMicros);
     }
 
     /**
      * Busy spin cpu checking all {@link EventSource}'s and tasks submitted by
      * {@link #submit(Callable) }
      */
-    public void useBusySpin() {
-        loggerRequests.info("setting scheduling: useBusySpin");
-        setSleepMicros(0);
+    public final void busySpin() {
+        loggerRequests.info("scheduling: BUSY");
         waitiOnTask.lazySet(false);
+        setSleepMicros(0);
     }
 
     /**
-     * Progress will only be made when tasks are submitted, using submit
+     * Progress will only be made when tasks are submitted, using
+     * {@link  #submit}
      */
-    public void waitOnTaskQueue() {
-        loggerRequests.info("setting scheduling: waitOnTaskQueue");
+    public final void waitOnTaskQueue() {
+        loggerRequests.info("scheduling: WAIT");
         waitiOnTask.set(true);
         setSleepMicros(0);
     }
@@ -137,7 +176,7 @@ public class SepExecutor {
      * {@link Future#get}
      *
      * @param <T> The return value of the task if any
-     * @param task The task to interract with the SEP
+     * @param task The task to interact with the SEP
      * @return The Future value of the task
      */
     public <T> Future<T> submit(Callable<T> task) {
@@ -215,10 +254,9 @@ public class SepExecutor {
     }
 
     static int count = 0;
-    
+
     public static void main(String[] args) throws InterruptedException, ExecutionException {
         SepExecutor sepExecutor = new SepExecutor(EventHandler.NULL_EVENTHANDLER, "sample");
-//        sepExecutor.setSleepMicros(500 * 1000);
         sepExecutor.registerEventSource(() -> {
             sepExecutor.loggerTasks.info("EventSource dummy read:{}", count++);
             return null;
