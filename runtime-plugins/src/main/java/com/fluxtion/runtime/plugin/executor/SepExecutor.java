@@ -73,6 +73,7 @@ public class SepExecutor {
 
     private final ArrayList<EventSourceDecorator> sourceList;
     private EventSourceDecorator[] sourceArray;
+    private Thread eventLoopThread;
 
     public SepExecutor(EventHandler targetSep, String name) {
         this(targetSep, name, SchedulingConfig.sleepInMillis(100));
@@ -101,6 +102,7 @@ public class SepExecutor {
     }
 
     public void registerEventSource(EventSource eventSource, String name) {
+        checkState();
         submit(() -> {
             loggerTasks.info("adding EventSource:" + name);
             sourceList.add(new EventSourceDecorator(eventSource));
@@ -110,6 +112,7 @@ public class SepExecutor {
     }
 
     public void shutDown() {
+        checkState();
         loggerRequests.info("shutting down");
         try {
             Future<Object> submit = submit(() -> {
@@ -132,9 +135,11 @@ public class SepExecutor {
      * @param sleepMicros the pause between loop iterations
      */
     private void setSleepMicros(long sleepMicros) {
+        checkState();
         sleepMicros = sleepMicros < 0 ? 0 : sleepMicros;
         loggerRequests.info("setting setSleepMicros: {}", sleepMicros);
         this.sleepMicros.lazySet(sleepMicros);
+        LockSupport.unpark(eventLoopThread);
     }
 
     /**
@@ -145,6 +150,7 @@ public class SepExecutor {
      */
     public final void sleep(long sleepMicros) {
         loggerRequests.info("scheduling: SLEEP");
+        checkState();
         waitiOnTask.lazySet(false);
         setSleepMicros(sleepMicros);
     }
@@ -155,6 +161,7 @@ public class SepExecutor {
      */
     public final void busySpin() {
         loggerRequests.info("scheduling: BUSY");
+        checkState();
         waitiOnTask.lazySet(false);
         setSleepMicros(0);
     }
@@ -165,6 +172,7 @@ public class SepExecutor {
      */
     public final void waitOnTaskQueue() {
         loggerRequests.info("scheduling: WAIT");
+        checkState();
         waitiOnTask.set(true);
         setSleepMicros(0);
     }
@@ -180,19 +188,26 @@ public class SepExecutor {
      * @return The Future value of the task
      */
     public <T> Future<T> submit(Callable<T> task) {
-        loggerRequests.info("submitting task");
+        loggerRequests.debug("submitting task");
+        checkState();
         FutureTask<T> ft = new FutureTask(task);
         queue.add(ft);
         return ft;
     }
 
+    private void checkState() {
+        if (!run.get()) {
+            throw new IllegalStateException("cannot process requests, SepExecutor is stopped");
+        }
+    }
+
     private void start() {
-        loggerTasks.info("starting");
-        Thread t = new Thread(name) {
+        loggerRequests.info("start");
+        eventLoopThread = new Thread(name) {
             @Override
             public void run() {
                 while (run.get()) {
-                    loggerTasks.trace("starting event loop");
+                    loggerTasks.trace("entering event loop");
                     //read EventSource's
                     for (EventSourceDecorator eventSource : sourceArray) {
                         eventSource.run();
@@ -223,7 +238,7 @@ public class SepExecutor {
                 loggerTasks.info("exiting event loop");
             }
         };
-        t.start();
+        eventLoopThread.start();
     }
 
     /**
@@ -263,7 +278,6 @@ public class SepExecutor {
         }, "dummyEventSource");
 
         Thread.sleep(1000);
-        System.out.println("setting waitiOnTask strategy");
         sepExecutor.waitOnTaskQueue();
         Thread.sleep(1000);
         Future<String> futureResult = sepExecutor.submit(() -> {
@@ -273,7 +287,6 @@ public class SepExecutor {
         });
         String result = futureResult.get();
         sepExecutor.loggerRequests.info("result from task:" + result);
-        System.out.println("shutting down");
         sepExecutor.shutDown();
 
     }
