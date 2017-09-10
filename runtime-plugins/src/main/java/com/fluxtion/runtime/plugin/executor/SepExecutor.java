@@ -32,6 +32,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,25 +104,29 @@ public class SepExecutor {
 
     public void registerEventSource(EventSource eventSource, String name) {
         checkState();
-        submit(() -> {
-            loggerTasks.info("adding EventSource:" + name);
-            sourceList.add(new EventSourceDecorator(eventSource));
-            sourceArray = sourceList.toArray(sourceArray);
-            return null;
-        });
+        try {
+            submit(() -> {
+                loggerTasks.info("adding EventSource:" + name);
+                sourceList.add(new EventSourceDecorator(eventSource));
+                sourceArray = sourceList.toArray(sourceArray);
+                return null;
+            }).get();
+        } catch (InterruptedException | ExecutionException interruptedException) {
+            loggerRequests.warn("problem adding EventSource:" + name, interruptedException);
+        }
     }
 
     public void shutDown() {
         checkState();
         loggerRequests.info("shutting down");
+        waitOnTaskQueue();
         try {
             Future<Object> submit = submit(() -> {
+                run.set(false);
                 queue.forEach(f -> f.cancel(true));
                 queue.clear();
                 return null;
             });
-            waitOnTaskQueue();
-            run.set(false);
             submit.get(3, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException ex) {
             loggerRequests.error("problem shutting down event loop", ex);
@@ -213,6 +218,11 @@ public class SepExecutor {
                         eventSource.run();
                     }
                     //process commands
+                    long sleep = sleepMicros.get();
+                    if (sleep > 0) {
+                        loggerTasks.trace("sleeping");
+                        LockSupport.parkNanos(sleep * 1000);
+                    }
                     FutureTask future = null;
                     if (waitiOnTask.get()) {
                         loggerTasks.trace("waiting task queue take");
@@ -228,11 +238,6 @@ public class SepExecutor {
                     if (future != null) {
                         loggerTasks.trace("processing task");
                         future.run();
-                    }
-                    long sleep = sleepMicros.get();
-                    if (sleep > 0) {
-                        loggerTasks.trace("sleeping");
-                        LockSupport.parkNanos(sleep * 1000);
                     }
                 }
                 loggerTasks.info("exiting event loop");
@@ -267,28 +272,4 @@ public class SepExecutor {
             }
         }
     }
-
-    static int count = 0;
-
-    public static void main(String[] args) throws InterruptedException, ExecutionException {
-        SepExecutor sepExecutor = new SepExecutor(EventHandler.NULL_EVENTHANDLER, "sample");
-        sepExecutor.registerEventSource(() -> {
-            sepExecutor.loggerTasks.info("EventSource dummy read:{}", count++);
-            return null;
-        }, "dummyEventSource");
-
-        Thread.sleep(1000);
-        sepExecutor.waitOnTaskQueue();
-        Thread.sleep(1000);
-        Future<String> futureResult = sepExecutor.submit(() -> {
-            sepExecutor.loggerTasks.info("process my task");
-            Thread.sleep(1000);
-            return "complete";
-        });
-        String result = futureResult.get();
-        sepExecutor.loggerRequests.info("result from task:" + result);
-        sepExecutor.shutDown();
-
-    }
-
 }
