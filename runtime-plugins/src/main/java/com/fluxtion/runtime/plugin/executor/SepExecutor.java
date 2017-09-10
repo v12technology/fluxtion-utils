@@ -20,16 +20,16 @@ package com.fluxtion.runtime.plugin.executor;
 
 import com.fluxtion.runtime.event.Event;
 import com.fluxtion.runtime.lifecycle.EventHandler;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,123 +39,117 @@ import org.slf4j.LoggerFactory;
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
 public class SepExecutor {
-
+    
     private EventHandler targetSep;
     private final String name;
-    private ScheduledExecutorService executor;
+    private BlockingQueue<FutureTask> queue = new ArrayBlockingQueue<>(10);
+    private AtomicBoolean run = new AtomicBoolean(true);
+    
     private final AtomicLong sleepMicros;
-    private final Logger logger;
-
+    private final Logger loggerRequests;
+    private final Logger loggerTasks;
+    private EventSourceDecorator eventSource;
+    
     public SepExecutor(EventHandler targetSep, String name) {
-        logger = LoggerFactory.getLogger("SepExecutor-" + name);
+        loggerRequests = LoggerFactory.getLogger("SepExecutor-requesthandler-" + name);
+        loggerTasks = LoggerFactory.getLogger("SepExecutor-TaskProcessor-" + name);
         this.targetSep = targetSep;
         this.name = name;
         sleepMicros = new AtomicLong(100 * 1000);
         start();
     }
-
+    
     public void registerEventSource(EventSource eventSource) {
-        executor.scheduleAtFixedRate(new EventSourceDecorator(eventSource), 1, 1, TimeUnit.NANOSECONDS);
+        this.eventSource = new EventSourceDecorator(eventSource);
     }
-
+    
     public void shutDown() {
-        executor.shutdown();
-        try {
-            executor.awaitTermination(2, TimeUnit.SECONDS);
-        } catch (InterruptedException ex) {
-            logger.error("failed to shutdown within 2 seconds, forcing shutdown", ex);
-            executor.shutdownNow();
-        }
+        run.lazySet(false);
     }
-
+    
     public void setSleepMicros(long sleepMicros) {
         sleepMicros = sleepMicros < 0 ? 0 : sleepMicros;
         this.sleepMicros.lazySet(sleepMicros);
     }
-
+    
     public <T> Future<T> submit(Callable<T> task) {
-        return executor.submit(task);
+        loggerRequests.info("submitting task");
+        FutureTask<T> ft = new FutureTask(task);
+        queue.add(ft);
+        return ft;
     }
-
+    
     private void start() {
-        logger.info("starting");
-        executor = Executors.newSingleThreadScheduledExecutor(new MyThreadFactory());
-        targetSep = (EventHandler) (Event e) -> {
-            System.out.println("processing event");
-            logger.info("processing event");
-        };
-        executor.scheduleWithFixedDelay(() -> {
-            logger.info("sleeping");
-            long sleep = sleepMicros.get();
-            if (sleep > 0) {
-                LockSupport.parkNanos(sleep * 1000);
+        loggerTasks.info("starting");
+        Thread t = new Thread("fred") {
+            @Override
+            public void run() {
+                while (run.get()) {
+                    try {
+                        //process commands
+                        loggerTasks.info("waiting to take task");
+                        FutureTask future = queue.take();
+                        loggerTasks.info("processing task");
+                        future.run();
+                        //test for read
+                        eventSource.run();
+                        LockSupport.parkNanos(sleepMicros.get() * 1000);
+                    } catch (InterruptedException ex) {
+                        java.util.logging.Logger.getLogger(SepExecutor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
             }
-        }, 1, 1, TimeUnit.MICROSECONDS);
+        };
+        t.start();
     }
 
     /**
      *
      */
     private class EventSourceDecorator implements Runnable {
-
+        
         EventSource eventSource;
-
+        
         public EventSourceDecorator(EventSource eventSource) {
             this.eventSource = eventSource;
         }
-
+        
         @Override
         public void run() {
-            logger.info("reading");
-            Event event = eventSource.read();
-            if (event != null) {
-                targetSep.onEvent(event);
-            } else {
-                logger.info("no event to read");
+            try {
+                loggerTasks.info("reading");
+                Event event = eventSource.read();
+                if (event != null) {
+                    targetSep.onEvent(event);
+                } else {
+                    loggerTasks.info("no event to read");
+                }
+            } catch (Exception e) {
+                loggerTasks.error("problem reading event source", e);
             }
         }
     }
-
+    
     public static void main(String[] args) throws InterruptedException, ExecutionException {
         SepExecutor sepExecutor = new SepExecutor(EventHandler.NULL_EVENTHANDLER, "dummyHandler");
         sepExecutor.setSleepMicros(500 * 1000);
         
-        
         sepExecutor.registerEventSource(() -> {
-            sepExecutor.logger.info("dummy read");
+            sepExecutor.loggerTasks.info("dummy read");
             return null;
         });
-
+        
         Thread.sleep(2000);
         Future<String> futureResult = sepExecutor.submit(() -> {
-            System.out.println("HELP");
-            sepExecutor.logger.info("random request");
+            sepExecutor.loggerTasks.info("random request");
             Thread.sleep(1000);
             return "complete";
         });
         String result = futureResult.get();
-        sepExecutor.logger.info("result from task:" + result);
+        sepExecutor.loggerRequests.info("result from task:" + result);
         System.out.println("shutting down");
         sepExecutor.shutDown();
-
-    }
-
-    public class MyThreadFactory implements ThreadFactory {
-
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r, name);
-        }
-
-    }
-    
-    
-    private static class MyFutureTask<T> extends FutureTask<T>{
-        
-        public MyFutureTask(Callable<T> callable) {
-            super(callable);
-        }
         
     }
-
+    
 }
