@@ -10,6 +10,7 @@ import com.fluxtion.runtime.event.Event;
 import com.fluxtion.runtime.lifecycle.EventHandler;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPHML;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPH_PNG;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.NODE_LIST;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.ONEVENT;
@@ -25,6 +26,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.Future;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.ClassPathUtils;
 import org.slf4j.Logger;
@@ -74,9 +77,10 @@ public class SEPManagementEngine {
         spark.path("/:sep_processor", () -> {
             spark.post(TRACER.endPoint(), this::traceField);
             spark.post(EVENT_LOGGER.endPoint(), this::configureEventLogger);
-            spark.post(NODE_LIST.endPoint(), this::getNodeList);
-            spark.post(GRAPHML.endPoint(), this::getGraphMl);
             spark.post(ONEVENT.endPoint(), this::onEvent);
+            spark.get(NODE_LIST.endPoint(), this::getNodeList);
+            spark.get(GRAPHML.endPoint(), this::getGraphMl);
+            spark.get(GRAPH_PNG.endPoint(), this::getGraphPng);
         });
         spark.awaitInitialization();
     }
@@ -173,6 +177,7 @@ public class SEPManagementEngine {
                     .stream().filter(f -> f.getType().equals(Tracer.class))
                     .findFirst();
             if (tracerField.isPresent()) {
+                res.type("application/json");
                 Field f = tracerField.get();
                 try {
                     Tracer tracer = (Tracer) f.get(sep1);
@@ -194,9 +199,34 @@ public class SEPManagementEngine {
         if (is == null) {
             LOGGER.info("could not locate graphml:{}", fqp);
         } else {
+            res.type("text/xml");
             try (Scanner scanner = new Scanner(is)) {
                 ret = scanner.useDelimiter("\\A").next();
             }
+        }
+        return ret;
+    }
+
+    public Object getGraphPng(Request req, Response res) throws IOException {
+        AsyncEventHandler sep = getSep(req);
+        String ret = "<html><body><h1>404 no sep image found</h1></body></html>";
+        String fqp = ClassPathUtils.toFullyQualifiedPath(sep.delegate().getClass(), sep.delegate().getClass().getSimpleName() + ".png");
+        InputStream is = sep.getClass().getClassLoader().getResourceAsStream(fqp);
+
+        if (is == null) {
+            LOGGER.info("could not locate graphml:{}", fqp);
+        } else {
+            HttpServletResponse raw = res.raw();
+            res.type("image/jpg");
+//            res.header("Content-Disposition", "attachment; filename=image.png");
+            ServletOutputStream os = res.raw().getOutputStream();
+            byte[] buffer = new byte[1024];
+            while (is.read(buffer) > -1) {
+                os.write(buffer);
+            }
+            raw.getOutputStream().flush();
+            raw.getOutputStream().close();
+            return raw;
         }
         return ret;
     }

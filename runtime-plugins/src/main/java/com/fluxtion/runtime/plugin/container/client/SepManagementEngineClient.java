@@ -19,6 +19,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.ObjectMapper;
 import com.mashape.unirest.http.Unirest;
 import static com.mashape.unirest.http.Unirest.post;
+import static com.mashape.unirest.http.Unirest.get;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
 import java.util.Arrays;
@@ -61,12 +62,12 @@ public class SepManagementEngineClient {
     }
     
     public  List<NodeDescription> getNodeDescriptions() throws UnirestException{
-        HttpResponse<NodeDescription[]> asObject = post(NODE_LIST.url(sep_url)).asObject(NodeDescription[].class);
+        HttpResponse<NodeDescription[]> asObject = get(NODE_LIST.url(sep_url)).asObject(NodeDescription[].class);
         return Arrays.asList(asObject.getBody());
     }
     
     public HttpResponse<String> getGraphMl(String sepName) throws UnirestException {
-        return post(GRAPHML.url(sep_url)).asString();
+        return get(GRAPHML.url(sep_url)).asString();
     }
     
     private static void initialise() {

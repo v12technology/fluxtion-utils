@@ -14,6 +14,7 @@ public enum Endpoints {
     EVENT_LOGGER("eventlogger"),
     NODE_LIST("nodelist"),
     GRAPHML("graphml"),
+    GRAPH_PNG("graphimage"),
     ONEVENT("onevent"),
     ;
 
