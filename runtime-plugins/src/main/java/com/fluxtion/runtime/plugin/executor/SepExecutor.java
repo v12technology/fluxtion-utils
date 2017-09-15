@@ -32,7 +32,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +58,10 @@ import org.slf4j.LoggerFactory;
  * micros (100 milliseconds)
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
+ * @param <E>
  */
-public class SepExecutor implements AsyncEventHandler {
+public class SepExecutor<E extends EventHandler> implements AsyncEventHandler<E> {
+
 
     private final EventHandler targetSep;
     private final String name;
@@ -87,7 +88,7 @@ public class SepExecutor implements AsyncEventHandler {
         this.targetSep = targetSep;
         this.name = name;
         sourceList = new ArrayList<>();
-        sourceArray = new EventSourceDecorator[0];
+        sourceArray = new SepExecutor.EventSourceDecorator[0];
         sleepMicros = new AtomicLong(scheduling.getSleep());
         sourceList.add(new EventSourceDecorator(new DefaultEventSource()));
         sourceArray = sourceList.toArray(sourceArray);
@@ -195,7 +196,7 @@ public class SepExecutor implements AsyncEventHandler {
      * @param task The task to interact with the SEP
      * @return The Future value of the task
      */
-    @Override
+//    @Override
     public <T> Future<T> submit(Callable<T> task) {
         loggerRequests.debug("submitting task");
         checkState();
@@ -205,6 +206,15 @@ public class SepExecutor implements AsyncEventHandler {
     }
     
     @Override
+    public <T> Future<T> submitTask(SepCallable<T, E> task) {
+        return submit(new Callable<T>() {
+            public T call() throws Exception {
+                return task.call((E) targetSep);
+            }
+        });
+    } 
+
+//    @Override
     public EventHandler delegate() {
         return targetSep;
     }
@@ -218,7 +228,7 @@ public class SepExecutor implements AsyncEventHandler {
             throw new RuntimeException(ex);
         }
     }
-    
+
     private void checkState() {
         if (!run.get()) {
             throw new IllegalStateException("cannot process requests, SepExecutor is stopped");

@@ -11,6 +11,8 @@ import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGE
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPHML;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.NODE_LIST;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
+import com.fluxtion.runtime.plugin.executor.AsyncEventHandler;
+import com.fluxtion.runtime.plugin.executor.SepCallable;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
 import com.fluxtion.runtime.plugin.tracing.Tracer;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
@@ -21,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.concurrent.Future;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.ClassPathUtils;
 import org.slf4j.Logger;
@@ -42,10 +45,10 @@ import spark.Service;
  */
 public class SEPManagementEngine {
 
-    private final Map<String, EventHandler> handlerMap;
+    private final Map<String, AsyncEventHandler> handlerMap;
     private final ObjectMapper jacksonObjectMapper = new ObjectMapper();
     private Service spark;
-    private static Logger LOGGER  = LoggerFactory.getLogger(SEPManagementEngine.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SEPManagementEngine.class);
 
     public SEPManagementEngine() {
         handlerMap = new HashMap<>();
@@ -91,12 +94,12 @@ public class SEPManagementEngine {
      * @param sep
      * @param id
      */
-    public void registerSep(EventHandler sep, String id) {
+    public void registerSep(AsyncEventHandler sep, String id) {
         handlerMap.put(id, sep);
     }
 
-    private EventHandler getSep(Request req) {
-        return handlerMap.getOrDefault(req.params(":sep_processor"), EventHandler.NULL_EVENTHANDLER);
+    private AsyncEventHandler getSep(Request req) {
+        return handlerMap.getOrDefault(req.params(":sep_processor"), AsyncEventHandler.NULL_ASYNCEVENTHANDLER);
     }
 
     /**
@@ -132,22 +135,25 @@ public class SEPManagementEngine {
     }
 
     public Object getNodeList(Request req, Response res) throws Exception {
-        EventHandler sep = getSep(req);
-        Object retValue = "no fields found";
+        AsyncEventHandler sep = getSep(req);
+        Future submitTask = sep.submitTask((EventHandler sep1) -> {
+            Object retValue = "no fields found";
 //        res.header(traceRequest, traceRequest);
-        Optional<Field> tracerField = FieldUtils.getAllFieldsList(sep.getClass()).stream()
-                .filter(f -> f.getType().equals(Tracer.class))
-                .findFirst();
-        if (tracerField.isPresent()) {
-            Field f = tracerField.get();
-            try {
-                Tracer tracer = (Tracer) f.get(sep);
-                retValue = jacksonObjectMapper.writeValueAsString(tracer.getNodeDescription());
-            } catch (IllegalArgumentException | IllegalAccessException ex) {
-                LOGGER.error("problem accessing node list", ex);
+            Optional<Field> tracerField = FieldUtils.getAllFieldsList(sep1.getClass())
+                    .stream().filter(f -> f.getType().equals(Tracer.class))
+                    .findFirst();
+            if (tracerField.isPresent()) {
+                Field f = tracerField.get();
+                try {
+                    Tracer tracer = (Tracer) f.get(sep1);
+                    retValue = jacksonObjectMapper.writeValueAsString(tracer.getNodeDescription());
+                } catch (IllegalArgumentException | IllegalAccessException ex) {
+                    LOGGER.error("problem accessing node list", ex);
+                }
             }
-        }
-        return retValue;
+            return retValue;
+        });
+        return submitTask.get();
     }
 
     public Object getGraphMl(Request req, Response res) throws IOException {

@@ -13,6 +13,7 @@ package com.fluxtion.runtime.plugin.executor;
 
 import com.fluxtion.runtime.event.Event;
 import com.fluxtion.runtime.lifecycle.EventHandler;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
@@ -27,7 +28,7 @@ import org.slf4j.LoggerFactory;
 public class ExecutorTest {
 
     Logger logger = LoggerFactory.getLogger(ExecutorTest.class);
-    
+
     @Test(expected = IllegalStateException.class)
     public void startStopDefault() {
         logger.info("startStopDefault");
@@ -87,9 +88,30 @@ public class ExecutorTest {
         logger.info("singleThreadedAccessTask");
         SepExecutor sepExecutor = new SepExecutor(EventHandler.NULL_EVENTHANDLER, "sample");
         sepExecutor.waitOnTaskQueue();
-        String threadName = sepExecutor.submit(() -> Thread.currentThread().getName()).get();
+        Object threadName = sepExecutor.submit(() -> Thread.currentThread().getName()).get();
         sepExecutor.shutDown();
         Assert.assertEquals("sample", threadName);
+    }
+
+    @Test
+    public void singleThreadedAccessSepTask() throws InterruptedException, ExecutionException {
+        logger.info("singleThreadedAccessTask");
+        SepExecutor<MySepHandler> sepExecutor = new SepExecutor<>(new MySepHandler(), "sample");
+        sepExecutor.waitOnTaskQueue();
+        String threadName = sepExecutor.submitTask((MySepHandler sep) -> sep.name).get();
+        sepExecutor.shutDown();
+        Assert.assertEquals("test", threadName);
+    }
+
+    public static class MySepHandler implements EventHandler {
+
+        public String name = "test";
+
+        @Override
+        public void onEvent(Event e) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
     }
 
     @Test
@@ -110,7 +132,7 @@ public class ExecutorTest {
         Assert.assertEquals("sample", ans[0]);
         sepExecutor.shutDown();
     }
-    
+
     private static class MyEventSource implements EventSource {
 
         AtomicBoolean createEventFlag = new AtomicBoolean(false);

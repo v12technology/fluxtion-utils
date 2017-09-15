@@ -8,6 +8,8 @@ package com.fluxtion.runtime.plugin.container.server;
 import com.fluxtion.learning.utils.monitoring.cooling.TemperatureEvent;
 import com.fluxtion.learning.utils.monitoring.cooling.generated.RackCoolingSystem;
 import com.fluxtion.runtime.plugin.container.client.SepManagementEngineClient;
+import com.fluxtion.runtime.plugin.executor.AsyncEventHandler;
+import com.fluxtion.runtime.plugin.executor.SingleThreadedAsyncEventHandler;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
 import com.fluxtion.runtime.plugin.logging.YamlLogRecordListener;
 import com.fluxtion.runtime.plugin.reflection.NodeDescription;
@@ -47,6 +49,7 @@ public class ContainerTest {
         count.add(5876);
     }
     private RackCoolingSystem rackCooler;
+    private AsyncEventHandler managedCooler;
     private SepManagementEngineClient client;
 
     @Before
@@ -55,7 +58,8 @@ public class ContainerTest {
         container.init(count.intValue());
         rackCooler = new RackCoolingSystem();
         rackCooler.init();
-        container.registerSep(rackCooler, RACK_COOLER);
+        managedCooler = new SingleThreadedAsyncEventHandler(rackCooler);
+        container.registerSep(managedCooler, RACK_COOLER);
         client = new SepManagementEngineClient("http://localhost:" + count.intValue(), "rackCooler");
     }
     private static final String RACK_COOLER = "rackCooler";
@@ -84,6 +88,27 @@ public class ContainerTest {
         rackCooler.handleEvent(new TemperatureEvent(server1, 30));
         rackCooler.handleEvent(new TemperatureEvent(server1, 49));
         rackCooler.handleEvent(new TemperatureEvent(external, 32));
+        assertEquals(0, logListener.getEventList().size());
+    }
+
+    @Test
+    public void testEventLogControlAsynch() throws UnirestException {
+        final YamlLogRecordListener logListener = new YamlLogRecordListener();
+        rackCooler.logger.setLogSink(logListener);
+        //send an temperature events and count logs
+        managedCooler.onEvent(new TemperatureEvent(external, 25));
+        managedCooler.onEvent(new TemperatureEvent(server1, 30));
+        managedCooler.onEvent(new TemperatureEvent(server1, 49));
+        managedCooler.onEvent(new TemperatureEvent(external, 32));
+        assertEquals(4, logListener.getEventList().size());
+        //remove logging
+        client.configureEventLogger(new EventLogConfig(EventLogConfig.LogLevel.NONE));
+        logListener.getEventList().clear();
+        //send an temperature events and count logs
+        managedCooler.onEvent(new TemperatureEvent(external, 25));
+        managedCooler.onEvent(new TemperatureEvent(server1, 30));
+        managedCooler.onEvent(new TemperatureEvent(server1, 49));
+        managedCooler.onEvent(new TemperatureEvent(external, 32));
         assertEquals(0, logListener.getEventList().size());
     }
 
