@@ -11,21 +11,19 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
-public class SingleThreadedAsyncEventHandler implements AsyncEventHandler{
+public class SingleThreadedAsyncEventHandler implements AsyncEventHandler {
 
     private final EventHandler handler;
 
     public SingleThreadedAsyncEventHandler(EventHandler handler) {
         this.handler = handler;
     }
-    
+
     @Override
     public Future submitTask(SepCallable task) {
         return new Future() {
@@ -65,6 +63,9 @@ public class SingleThreadedAsyncEventHandler implements AsyncEventHandler{
         handler.onEvent(e);
     }
 
+    @Override
+    public EventHandler delegate() {
+        return handler;
+    }
 
-    
 }

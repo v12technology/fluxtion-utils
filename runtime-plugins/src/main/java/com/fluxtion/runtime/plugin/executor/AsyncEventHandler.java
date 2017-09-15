@@ -20,7 +20,6 @@ package com.fluxtion.runtime.plugin.executor;
 
 import com.fluxtion.runtime.event.Event;
 import com.fluxtion.runtime.lifecycle.EventHandler;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 /**
@@ -40,9 +39,16 @@ public interface AsyncEventHandler<E extends EventHandler> extends EventHandler 
         @Override
         public void onEvent(Event e) {
         }
+
+        @Override
+        public EventHandler delegate() {
+            return null;
+        }
+        
+        
     };
 //
-//    EventHandler delegate();
+    EventHandler delegate();
 //
 //    <T> Future<T> submit(Callable<T> task);
 

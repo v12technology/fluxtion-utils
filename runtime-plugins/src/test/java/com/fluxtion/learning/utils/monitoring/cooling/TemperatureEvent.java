@@ -26,6 +26,9 @@ public class TemperatureEvent extends Event{
     
     private double tempInC;
 
+    public TemperatureEvent() {
+    }
+
     public TemperatureEvent(String temperatureSource, double tempInC) {
         super(NO_ID, temperatureSource);
         this.tempInC = tempInC;
@@ -33,6 +36,10 @@ public class TemperatureEvent extends Event{
 
     public double getTempInC() {
         return tempInC;
+    }
+
+    public void setTempInC(double tempInC) {
+        this.tempInC = tempInC;
     }
     
 }

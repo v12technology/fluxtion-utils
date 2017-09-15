@@ -6,10 +6,12 @@
 package com.fluxtion.runtime.plugin.container.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fluxtion.runtime.plugin.container.SerialisedEvent;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPHML;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.NODE_LIST;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.ONEVENT;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
 import com.fluxtion.runtime.plugin.reflection.NodeDescription;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
@@ -28,9 +30,9 @@ import java.util.List;
  */
 public class SepManagementEngineClient {
 
-    private String root_url;
-    private String sep_url;
-    private String sepName;
+    private final String root_url;
+    private final String sep_url;
+    private final String sepName;
     
     static {
         initialise();
@@ -44,6 +46,10 @@ public class SepManagementEngineClient {
 
     public void shutDown() throws IOException{
         Unirest.shutdown();
+    }
+
+    public HttpResponse<String> onEvent(SerialisedEvent serialisedEvent) throws UnirestException {
+        return post(ONEVENT.url(sep_url)).body(serialisedEvent).asString();
     }
 
     public HttpResponse<String> setTrace(TracerConfigEvent traceEvent) throws UnirestException {
@@ -77,6 +83,7 @@ public class SepManagementEngineClient {
                 }
             }
 
+            @Override
             public String writeValue(Object value) {
                 try {
                     return jacksonObjectMapper.writeValueAsString(value);

@@ -6,13 +6,14 @@
 package com.fluxtion.runtime.plugin.container.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fluxtion.runtime.event.Event;
 import com.fluxtion.runtime.lifecycle.EventHandler;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPHML;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.NODE_LIST;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.TRACER;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.ONEVENT;
 import com.fluxtion.runtime.plugin.executor.AsyncEventHandler;
-import com.fluxtion.runtime.plugin.executor.SepCallable;
 import com.fluxtion.runtime.plugin.logging.EventLogConfig;
 import com.fluxtion.runtime.plugin.tracing.Tracer;
 import com.fluxtion.runtime.plugin.tracing.TracerConfigEvent;
@@ -75,6 +76,7 @@ public class SEPManagementEngine {
             spark.post(EVENT_LOGGER.endPoint(), this::configureEventLogger);
             spark.post(NODE_LIST.endPoint(), this::getNodeList);
             spark.post(GRAPHML.endPoint(), this::getGraphMl);
+            spark.post(ONEVENT.endPoint(), this::onEvent);
         });
         spark.awaitInitialization();
     }
@@ -100,6 +102,34 @@ public class SEPManagementEngine {
 
     private AsyncEventHandler getSep(Request req) {
         return handlerMap.getOrDefault(req.params(":sep_processor"), AsyncEventHandler.NULL_ASYNCEVENTHANDLER);
+    }
+
+    /**
+     * general event handler, embedded {@link Event} instances must obey java
+     * bean patterns to be successfully marshalled and processed.
+     *
+     * @param req
+     * @param res
+     * @return
+     * @throws Exception
+     */
+    public Object onEvent(Request req, Response res) throws Exception {
+        EventHandler sep = getSep(req);
+        String traceRequest = req.body();
+        final String event = "{\"event\":";
+        final String eventClassString = ",\"eventClass\":\"";
+
+        int start = traceRequest.indexOf(event);
+        int last = traceRequest.lastIndexOf(eventClassString);
+        final String eventYaml = traceRequest.substring(start + event.length(), last);
+
+        start = traceRequest.indexOf(eventClassString);
+        String classStr = traceRequest.substring(start + eventClassString.length(), traceRequest.lastIndexOf("\""));
+        Class eventClass = Class.forName(classStr);
+
+        Event serialisedEvent = (Event) jacksonObjectMapper.readValue(eventYaml, eventClass);
+        sep.onEvent(serialisedEvent);
+        return "event processed";
     }
 
     /**
@@ -157,9 +187,9 @@ public class SEPManagementEngine {
     }
 
     public Object getGraphMl(Request req, Response res) throws IOException {
-        EventHandler sep = getSep(req);
+        AsyncEventHandler sep = getSep(req);
         String ret = "";
-        String fqp = ClassPathUtils.toFullyQualifiedPath(sep.getClass(), sep.getClass().getSimpleName() + ".graphml");
+        String fqp = ClassPathUtils.toFullyQualifiedPath(sep.delegate().getClass(), sep.delegate().getClass().getSimpleName() + ".graphml");
         InputStream is = sep.getClass().getClassLoader().getResourceAsStream(fqp);
         if (is == null) {
             LOGGER.info("could not locate graphml:{}", fqp);

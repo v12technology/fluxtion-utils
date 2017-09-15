@@ -14,20 +14,20 @@ public enum Endpoints {
     EVENT_LOGGER("eventlogger"),
     NODE_LIST("nodelist"),
     GRAPHML("graphml"),
+    ONEVENT("onevent"),
     ;
 
     public String endPoint() {
         return endpoint;
     }
-    
-    public String url(String root){
+
+    public String url(String root) {
         return root + endpoint;
     }
-    
-    
+
     private final String endpoint;
-    
-    private Endpoints(String endpoint){
+
+    private Endpoints(String endpoint) {
         this.endpoint = "/" + endpoint;
     }
 }

@@ -214,7 +214,7 @@ public class SepExecutor<E extends EventHandler> implements AsyncEventHandler<E>
         });
     } 
 
-//    @Override
+    @Override
     public EventHandler delegate() {
         return targetSep;
     }

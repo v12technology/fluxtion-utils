@@ -7,6 +7,7 @@ package com.fluxtion.runtime.plugin.container.server;
 
 import com.fluxtion.learning.utils.monitoring.cooling.TemperatureEvent;
 import com.fluxtion.learning.utils.monitoring.cooling.generated.RackCoolingSystem;
+import com.fluxtion.runtime.plugin.container.SerialisedEvent;
 import com.fluxtion.runtime.plugin.container.client.SepManagementEngineClient;
 import com.fluxtion.runtime.plugin.executor.AsyncEventHandler;
 import com.fluxtion.runtime.plugin.executor.SingleThreadedAsyncEventHandler;
@@ -19,6 +20,9 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -143,6 +147,9 @@ public class ContainerTest {
         rackCooler.handleEvent(new TemperatureEvent(server1, 49));
         rackCooler.handleEvent(new TemperatureEvent(external, 32));
         assertEquals(2, accumulator.intValue());
+        //send some events via http
+        client.onEvent(new SerialisedEvent(new TemperatureEvent(external, 32)));
+        assertEquals(3, accumulator.intValue());
     }
 
     @Test
@@ -163,7 +170,9 @@ public class ContainerTest {
     }
     
     @Test
-    public void testGetGraphMl() throws UnirestException{
+    public void testGetGraphMl() throws UnirestException, IOException{
         HttpResponse<String> nodeDescriptions = client.getGraphMl(RACK_COOLER);
+        String content = new String ( Files.readAllBytes( Paths.get("src/test/resources/com\\fluxtion\\learning\\utils\\monitoring\\cooling\\generated/RackCoolingSystem.graphml") ) );
+        assertEquals(nodeDescriptions.getBody().trim(), content.trim());
     }
 }
