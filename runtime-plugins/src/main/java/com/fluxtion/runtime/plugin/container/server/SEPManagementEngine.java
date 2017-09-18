@@ -73,6 +73,7 @@ public class SEPManagementEngine {
     public void init(int port) {
 //        stop();
         spark = Service.ignite();
+        spark.staticFileLocation("/public");
         spark.port(port);
         spark.path("/:sep_processor", () -> {
             spark.post(TRACER.endPoint(), this::traceField);
@@ -172,7 +173,6 @@ public class SEPManagementEngine {
         AsyncEventHandler sep = getSep(req);
         Future submitTask = sep.submitTask((EventHandler sep1) -> {
             Object retValue = "no fields found";
-//        res.header(traceRequest, traceRequest);
             Optional<Field> tracerField = FieldUtils.getAllFieldsList(sep1.getClass())
                     .stream().filter(f -> f.getType().equals(Tracer.class))
                     .findFirst();
@@ -209,16 +209,15 @@ public class SEPManagementEngine {
 
     public Object getGraphPng(Request req, Response res) throws IOException {
         AsyncEventHandler sep = getSep(req);
-        String ret = "<html><body><h1>404 no sep image found</h1></body></html>";
+        String ret = "<html><body><h1>404 no graph image found</h1></body></html>";
         String fqp = ClassPathUtils.toFullyQualifiedPath(sep.delegate().getClass(), sep.delegate().getClass().getSimpleName() + ".png");
         InputStream is = sep.getClass().getClassLoader().getResourceAsStream(fqp);
 
         if (is == null) {
-            LOGGER.info("could not locate graphml:{}", fqp);
+            LOGGER.info("could not locate graph image:{}", fqp);
         } else {
             HttpServletResponse raw = res.raw();
             res.type("image/jpg");
-//            res.header("Content-Disposition", "attachment; filename=image.png");
             ServletOutputStream os = res.raw().getOutputStream();
             byte[] buffer = new byte[1024];
             while (is.read(buffer) > -1) {
