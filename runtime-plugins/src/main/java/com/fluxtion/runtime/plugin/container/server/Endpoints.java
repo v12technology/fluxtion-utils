@@ -16,6 +16,7 @@ public enum Endpoints {
     GRAPHML("graphml"),
     GRAPH_PNG("graphimage"),
     ONEVENT("onevent"),
+    DASHBOARD("dashboard"),
     ;
 
     public String endPoint() {

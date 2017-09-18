@@ -8,6 +8,7 @@ package com.fluxtion.runtime.plugin.container.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fluxtion.runtime.event.Event;
 import com.fluxtion.runtime.lifecycle.EventHandler;
+import static com.fluxtion.runtime.plugin.container.server.Endpoints.DASHBOARD;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPHML;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPH_PNG;
@@ -32,9 +33,11 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.ClassPathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
 import spark.Service;
+import spark.template.velocity.VelocityTemplateEngine;
 
 /**
  * A container for managing SEP via REST calls. SEP's are registered with a
@@ -82,6 +85,7 @@ public class SEPManagementEngine {
             spark.get(NODE_LIST.endPoint(), this::getNodeList);
             spark.get(GRAPHML.endPoint(), this::getGraphMl);
             spark.get(GRAPH_PNG.endPoint(), this::getGraphPng);
+            spark.get(DASHBOARD.endPoint(), this::dashboard);
         });
         spark.awaitInitialization();
     }
@@ -107,6 +111,10 @@ public class SEPManagementEngine {
 
     private AsyncEventHandler getSep(Request req) {
         return handlerMap.getOrDefault(req.params(":sep_processor"), AsyncEventHandler.NULL_ASYNCEVENTHANDLER);
+    }
+
+    private String sepName(Request req) {
+        return req.params(":sep_processor");
     }
 
     /**
@@ -205,6 +213,14 @@ public class SEPManagementEngine {
             }
         }
         return ret;
+    }
+
+    public Object dashboard(Request req, Response res) throws IOException {
+        DashboardSummary summary = new DashboardSummary(sepName(req));
+        summary.setClassName(getSep(req).delegate().getClass().getCanonicalName());
+        final HashMap map = new HashMap();
+        map.put("summary", summary);
+        return new VelocityTemplateEngine().render(new ModelAndView(map, "templates/sepsummary.vsl"));
     }
 
     public Object getGraphPng(Request req, Response res) throws IOException {

@@ -175,6 +175,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
             <version>2.6.0</version>
         </dependency>
         <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-template-velocity</artifactId>
+            <!--<version>2.6.0</version>-->
+            <version>2.5.5</version>
+        </dependency>
+        <dependency>
             <groupId>com.mashape.unirest</groupId>
             <artifactId>unirest-java</artifactId>
             <version>1.4.9</version>
@@ -189,7 +195,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
             <artifactId>jackson-databind</artifactId>
             <version>2.9.0</version>
         </dependency>
-<!--        <dependency>
+        <!--        <dependency>
             <groupId>com.fluxtion.extension</groupId>
             <artifactId>fluxtion-declarative-api</artifactId>
         </dependency>
