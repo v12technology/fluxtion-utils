@@ -16,18 +16,23 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxtion.runtime.plugin.engine;
+package com.fluxtion.runtime.plugin.executor;
 
 import com.fluxtion.runtime.event.Event;
 
 /**
+ * Reads an {@link Event} ready for processing by a SEP. If no event is
+ * available then the implementation should return a null value. The
+ * {@link SepExecutor} will call this method and invoke a registered SEP with
+ * the {@link Event} if not null. The {@link SepExecutor} will ensure that the
+ * SEP is always invoked with a single thread.<p>
  *
- * @author Greg Higgins (greg.higgins@V12technology.com)
+ * A SEP is not allowed to hold a reference to the {@link Event} the EventSource
+ * produces, allowing recycling of instances.
+ *
+ * @author V12 Technology Limited
  */
-public interface EngineControl {
-    
-    void processEvent(Event event);
-    
-//    void addTraceListener
-    
+public interface EventSource {
+
+    Event read();
 }

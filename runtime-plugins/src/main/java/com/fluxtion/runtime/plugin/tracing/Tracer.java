@@ -22,7 +22,10 @@ import com.fluxtion.api.annotations.EventHandler;
 import com.fluxtion.runtime.audit.Auditor;
 import com.fluxtion.runtime.plugin.auditing.DelegatingAuditor;
 import com.fluxtion.runtime.plugin.events.ListenerRegistrationEvent;
+import com.fluxtion.runtime.plugin.reflection.NodeDescription;
 import com.fluxtion.runtime.plugin.tracing.TraceEvents.PublishProperties;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,18 +33,26 @@ import java.util.Set;
 
 /**
  *
- * A Tracer implements Auditor to provide property tracing functionality from
- * any node in a SEP and publishes to a registered TraceRecordListeners.
+ * A Tracer implements Auditor interface providing real-time property tracing
+ * functionality. A field from any node in a SEP can be traced and published to
+ * registered TraceRecordListeners.<p>
  *
- * Individual property traces are configured with a call to recorderControl(
- * TracerConfigEvent propertyRecorderControl). Tracing can be on demand or
- * on any event update, individually configured for each property traced.
+ * Individual property traces are configured by sending a
+ * {@link TracerConfigEvent} to the SEP with a Tracer built in.<p>
+ *
+ * Tracing can be on demand or on any event update:
+ * <ul>
+ * <li>demand: the user must send a {@link PublishProperties} event to trace and publish.
+ * <li>event update: a trace will be published on any event processed.
+ * </ul>
+ * Traces are individually configured for each property, using a {@link TracerConfigEvent}.
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
 public class Tracer implements Auditor {
 
     private HashMap<String, Object> name2Node;
+    private HashMap<String, NodeDescription> name2NodeDescription;
     private Set<PropertyReader> onEventPropertyReaderSet;
     private Set<PropertyReader> allReaderSet;
     private Set<TraceRecordListener> listenerSet;
@@ -49,6 +60,7 @@ public class Tracer implements Auditor {
     @Override
     public void nodeRegistered(Object node, String nodeName) {
         name2Node.put(nodeName, node);
+        name2NodeDescription.put(nodeName, NodeDescription.buildDescription(nodeName, node));
     }
 
     @EventHandler
@@ -59,6 +71,14 @@ public class Tracer implements Auditor {
         } else {
             listenerSet.remove(listener);
         }
+    }
+
+    public void addListener(TraceRecordListener listener) {
+        listenerSet.add(listener);
+    }
+
+    public void removeListener(TraceRecordListener listener) {
+        listenerSet.remove(listener);
     }
 
     @Override
@@ -87,6 +107,10 @@ public class Tracer implements Auditor {
             onEventPropertyReaderSet.remove(propertyReader);
             allReaderSet.remove(propertyReader);
         }
+    }
+
+    public Collection<NodeDescription> getNodeDescription() {
+        return Collections.unmodifiableCollection(name2NodeDescription.values());
     }
 
     //helper methods
@@ -126,6 +150,7 @@ public class Tracer implements Auditor {
     @Override
     public void init() {
         name2Node = new HashMap<>();
+        name2NodeDescription = new HashMap<>();
         onEventPropertyReaderSet = new HashSet<>();
         allReaderSet = new HashSet<>();
         listenerSet = new HashSet<>();
@@ -139,7 +164,6 @@ public class Tracer implements Auditor {
                     + "." + propertyRecord.getPropertyName()
                     + ": " + propertyRecord.getFormattedValue());
         }
-
     }
 
     public static Tracer addPropertyRecorder(com.fluxtion.runtime.lifecycle.EventHandler handler) {

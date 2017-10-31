@@ -22,18 +22,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.fluxtion.extension</groupId>
     <artifactId>runtime-plugins</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
     <name>fluxtion :: runtime-plugins</name>
 
     <description>Plugins that can be used at runtime with a fluxtion generated event processor</description>
-    <url>https://github.com/v12technology/fluxtion-visualiser</url>
+    <url>https://github.com/v12technology/fluxtion-utils</url>
     
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <fluxtion.ver>0.1.33</fluxtion.ver>
+        <fluxtion.ver>0.1.34</fluxtion.ver>
     </properties>
     
     
@@ -54,10 +54,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
     </developers>
     
     <scm>
-        <connection>scm:git:https://github.com/v12technology/fluxtion-visualiser.git</connection>
-        <developerConnection>scm:git:https://github.com/v12technology/fluxtion-visualiser.git</developerConnection>
-        <url>https://github.com/v12technology/fluxtion-visualiser</url>
+        <connection>scm:git:https://github.com/v12technology/fluxtion-utils.git</connection>
+        <developerConnection>scm:git:https://github.com/v12technology/fluxtion-utils.git</developerConnection>
+        <url>https://github.com/v12technology/fluxtion-utils</url>
     </scm>
+    
+    <repositories>   
+        <repository>
+            <id>fluxtion.repo</id>
+            <url>https://mymavenrepo.com/repo/a6PnK93U9WA0ChAw8D8u/</url>
+        </repository>
+    </repositories>  
     
     <distributionManagement>
         <snapshotRepository>
@@ -66,66 +73,64 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
         </snapshotRepository>
     </distributionManagement>
     
-    <repositories>   
-        <repository>
-            <id>fluxtion.repo</id>
-            <url>https://mymavenrepo.com/repo/a6PnK93U9WA0ChAw8D8u/</url>
-        </repository>
-    </repositories>  
-	
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin> 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>external.atlassian.jgitflow</groupId>
-                <artifactId>jgitflow-maven-plugin</artifactId>
-                <version>1.0-m5.1</version>
-                <configuration>
-                    <!--<noDeploy>true</noDeploy>-->
-                    <username>${fluxtion.github.user}</username>
-                    <password>${fluxtion.github.password}</password>
-                </configuration>
-            </plugin>  
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <version>1.12</version>
-                <executions>
-                    <execution>
-                        <id>download-license-description</id>
-                        <goals>
-                            <goal>add-third-party</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin> 
-        </plugins>
-    </build>
-	
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin> 
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>external.atlassian.jgitflow</groupId>
+                        <artifactId>jgitflow-maven-plugin</artifactId>
+                        <version>1.0-m5.1</version>
+                        <configuration>
+                            <!--<noDeploy>true</noDeploy>-->
+                            <username>${fluxtion.github.user}</username>
+                            <password>${fluxtion.github.password}</password>
+                        </configuration>
+                    </plugin>  
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <version>1.12</version>
+                        <executions>
+                            <execution>
+                                <id>download-license-description</id>
+                                <goals>
+                                    <goal>add-third-party</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin> 
+                </plugins>
+            </build>
+        </profile>
+    </profiles>     
+
     <dependencies>
         <dependency>
             <groupId>com.fluxtion.extension</groupId>
@@ -164,6 +169,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
             <artifactId>HdrHistogram</artifactId>
             <version>2.1.9</version>
         </dependency>
+        <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-core</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-template-velocity</artifactId>
+            <!--<version>2.6.0</version>-->
+            <version>2.5.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mashape.unirest</groupId>
+            <artifactId>unirest-java</artifactId>
+            <version>1.4.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.21</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <!--        <dependency>
+            <groupId>com.fluxtion.extension</groupId>
+            <artifactId>fluxtion-declarative-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fluxtion</groupId>
+            <artifactId>fluxtion-api</artifactId>
+        </dependency>-->
     </dependencies>
 	
     <dependencyManagement>

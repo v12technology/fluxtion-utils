@@ -21,9 +21,11 @@ package com.fluxtion.runtime.plugin.logging;
 import com.fluxtion.runtime.event.Event;
 
 /**
- * A log record from a double producing source. This is a structured log record
- * that can be easily converted to a long term store, such as a rdbms for later
- * analysis.
+ * This is a structured log record that can be easily converted to a long term
+ * store, such as a rdbms for later analysis. The LogRecord creates a yaml
+ * representation of the LogRecord for simplified marshaling.
+ * 
+ * A log record holds a set of 
  *
  * @author Greg Higgins (greg.higgins@v12technology.com)
  */
@@ -36,7 +38,6 @@ public class LogRecord {
      */
     public String groupingId;
 
-    
     public long eventId;
     /**
      * The time the event was received
@@ -79,10 +80,10 @@ public class LogRecord {
 
     private void addSourceId(String sourceId, String propertyKey) {
         if (this.sourceId == null) {
-            sb.append("\n\t\t").append(sourceId).append(": {");
+            sb.append("\n        ").append(sourceId).append(": {");
             this.sourceId = sourceId;
         } else if (!this.sourceId.equals(sourceId)) {
-            sb.append("},\n\t\t").append(sourceId).append(": {");
+            sb.append("},\n        ").append(sourceId).append(": {");
             this.sourceId = sourceId;
             firstProp = true;
         }
@@ -103,30 +104,47 @@ public class LogRecord {
         return sb;
     }
 
-    public void triggerEvent(Class<? extends Event> aClass) {
+    public void triggerEvent(Event event) {
+        Class<? extends Event> aClass = event.getClass();
         sb.append("eventLogRecord: {");
-        sb.append("\n\tlogTime: ").append(System.currentTimeMillis()).append(',');
-        sb.append("\n\tgroupingId: ").append(groupingId).append(',');
-        sb.append("\n\tevent: ").append(aClass.getSimpleName()).append(',');
-        sb.append("\n\tnodeLogs: [");
+        sb.append("\n    logTime: ").append(System.currentTimeMillis()).append(',');
+        sb.append("\n    groupingId: ").append(groupingId).append(',');
+        sb.append("\n    event: ").append(aClass.getSimpleName()).append(',');
+        if (event.filterString() != null && !event.filterString().isEmpty()) {
+            sb.append("\n    eventFilter: ").append(event.filterString()).append(',');
+        }
+        sb.append("\n    nodeLogs: [");
     }
 
-    public void triggerObject(Class<?> aClass) {
-        sb.append("eventLogRecord: {");
-        sb.append("\n\tlogTime: ").append(System.currentTimeMillis()).append(',');
-        sb.append("\n\tgroupingId: ").append(groupingId).append(',');
-        sb.append("\n\tevent: ").append(aClass.getSimpleName()).append(',');
-        sb.append("\n\tnodeLogs: [");
+    public void triggerObject(Object event) {
+        if (event instanceof Event) {
+            triggerEvent((Event) event);
+        } else {
+            Class<?> aClass = event.getClass();
+            sb.append("eventLogRecord: {");
+            sb.append("\n    logTime: ").append(System.currentTimeMillis()).append(',');
+            sb.append("\n    groupingId: ").append(groupingId).append(',');
+            sb.append("\n    event: ").append(aClass.getSimpleName()).append(',');
+            sb.append("\n    nodeLogs: [");
+        }
     }
 
-    public void terminateRecord() {
+    /**
+     * complete record processing, the return value indicates if any log values
+     * were written.
+     *
+     * @return flag to indicate properties were logged
+     */
+    public boolean terminateRecord() {
+        boolean logged = !firstProp;
         if (this.sourceId != null) {
             sb.append("}");
         }
-        sb.append("\n\t]");
+        sb.append("\n    ]");
         sb.append("\n}");
         firstProp = true;
         sourceId = null;
+        return logged;
     }
 
     @Override

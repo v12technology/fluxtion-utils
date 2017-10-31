@@ -23,17 +23,20 @@ import com.fluxtion.runtime.audit.Auditor;
 import com.fluxtion.runtime.event.Event;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Manages and publishes a LogRecord to a LogRecordListener. The LogRecord is
- * hydrated from a list of EventLogSource's. The EventLogManager configures and
- * supplies a EventLogger for each registered EventLogSource. The output from
- * each EventLogSource is aggregated into the LogRecord and published.
+ * Manages and publishes a {@link LogRecord} to a {@link LogRecordListener}. The
+ * LogRecord is hydrated from a list of {@link EventLogSource}'s. An
+ * EventLogManager configures and supplies a EventLogger instance for each registered
+ * EventLogSource, via {@link EventLogSource#setLogger(com.fluxtion.runtime.plugin.logging.EventLogger)} . The output from each EventLogSource is aggregated into the
+ * LogRecord and published.
  *
  * By default all data in the LogRecord is cleared after a publish. Clearing
  * behaviour is controlled with clearAfterPublish flag.
  *
- * EventLogConfig events set the processingComplete level for each registered
+ * EventLogConfig events set the logging level for each registered
  * EventLogSource.
  *
  * @author Greg Higgins (greg.higgins@v12technology.com)
@@ -44,6 +47,7 @@ public class EventLogManager implements Auditor {
     private LogRecord logRecord;
     private Map<String, EventLogger> node2Logger;
     private boolean clearAfterPublish;
+    private static Logger LOGGER = LoggerFactory.getLogger(EventLogManager.class);
 
     @Override
     public void nodeRegistered(Object node, String nodeName) {
@@ -57,8 +61,8 @@ public class EventLogManager implements Auditor {
 
     @EventHandler(propagate = false)
     public void calculationLogConfig(EventLogConfig newConfig) {
-        if (logRecord.groupingId != null && logRecord.groupingId.equals(newConfig.getGroupId())) {
-            System.out.println("CalculationLogManager::updateLogConfig");
+        if (logRecord.groupingId == null || logRecord.groupingId.equals(newConfig.getGroupId())) {
+            LOGGER.info("updating event log config:{}", newConfig);
             node2Logger.computeIfPresent(newConfig.getSourceId(), (t, u) -> {
                 u.setLevel(newConfig.getLevel());
                 return u;
@@ -84,8 +88,9 @@ public class EventLogManager implements Auditor {
 //    @AfterEvent
     @Override
     public void processingComplete() {
-        logRecord.terminateRecord();
-        sink.processCalculationRecord(logRecord);
+        if (logRecord.terminateRecord()) {
+            sink.processCalculationRecord(logRecord);
+        }
         if (clearAfterPublish) {
             logRecord.clear();
         }
@@ -97,17 +102,18 @@ public class EventLogManager implements Auditor {
         logRecord = new LogRecord();
         node2Logger = new HashMap<>();
         clearAfterPublish = true;
-        sink = (l) -> {};
+        sink = (l) -> {
+        };
     }
 
     @Override
     public void eventReceived(Event triggerEvent) {
-        logRecord.triggerEvent(triggerEvent.getClass());
+        logRecord.triggerEvent(triggerEvent);
     }
 
     @Override
     public void eventReceived(Object triggerEvent) {
-        logRecord.triggerObject(triggerEvent.getClass());
+        logRecord.triggerObject(triggerEvent);
     }
 
 }

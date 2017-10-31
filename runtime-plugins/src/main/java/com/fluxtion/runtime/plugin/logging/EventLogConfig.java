@@ -20,21 +20,37 @@ package com.fluxtion.runtime.plugin.logging;
 
 import com.fluxtion.runtime.event.Event;
 
-
 /**
- * Control message to control the granularity of logging from a EventLogSource
- * source
+ * Control message to manage the granularity of logging from a EventLogSource
+ * source.
+ *
+ * Values for {@link #sourceId} {@link  #groupId} are used to filter the nodes
+ * to apply the configuration to.
  *
  * @author Greg Higgins (greg.higgins@v12technology.com)
  */
 public class EventLogConfig extends Event {
 
     private LogLevel level = LogLevel.INFO;
+    
+    /**
+     * The name of the node to apply the configuration to. A null value, the
+     * default, is no filtering and configuration will be applied to all nodes.
+     */
     private String sourceId;
+    
+    /**
+     * The group Id of a SEP to apply the configuration to. A null value, the
+     * default, is no filtering and configuration will be applied to all SEP's.
+     */
     private String groupId;
 
     public EventLogConfig() {
-        this.level = LogLevel.INFO;
+        this(LogLevel.INFO);
+    }
+
+    public EventLogConfig(LogLevel level) {
+        this(null, null, level);
     }
 
     public EventLogConfig(String sourceId, String groupId, LogLevel level) {
@@ -54,9 +70,21 @@ public class EventLogConfig extends Event {
     public String getGroupId() {
         return groupId;
     }
-    
+
+    public void setLevel(LogLevel level) {
+        this.level = level;
+    }
+
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
     public enum LogLevel {
-        NONE(0), INFO(1), DEBUG(2), TRACE(3);
+        NONE(0), ERROR(1), WARN(2), INFO(3), DEBUG(4), TRACE(5);
 
         private LogLevel(int level) {
             this.level = level;
@@ -65,4 +93,9 @@ public class EventLogConfig extends Event {
 
     }
 
+    @Override
+    public String toString() {
+        return "EventLogConfig{" + "level=" + level + ", sourceId=" + sourceId + ", groupId=" + groupId + '}';
+    }
+    
 }

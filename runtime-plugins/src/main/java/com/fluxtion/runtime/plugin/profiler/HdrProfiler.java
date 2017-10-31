@@ -20,7 +20,6 @@ package com.fluxtion.runtime.plugin.profiler;
 
 import com.fluxtion.runtime.audit.Auditor;
 import com.fluxtion.runtime.event.Event;
-import java.util.HashMap;
 
 /**
  *
@@ -34,27 +33,22 @@ public class HdrProfiler implements Auditor{
     
     @Override
     public void nodeRegistered(Object node, String nodeName) {
-//        System.out.println("registered node:" + nodeName);
     }
 
     @Override
     public void eventReceived(Event event) {
-//        System.out.println("processing event:" + event.getClass().getSimpleName());
     }
 
     @Override
     public void eventReceived(Object event) {
-//        System.out.println("processing event:" + event.getClass().getSimpleName());
     }
 
     @Override
     public void processingComplete() {
-//        System.out.println("processingComplete");
     }
 
     @Override
     public void nodeInvoked(Object node, String nodeName, String methodName, Object typedEvent) {
-//        System.out.println("node invoked:" + node +  ", method:" + methodName + " event:" + typedEvent.getClass().getCanonicalName());
     }
 
     @Override

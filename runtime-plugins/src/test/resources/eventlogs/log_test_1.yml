@@ -1,0 +1,21 @@
+## YAML Template.
+eventLogRecord: {
+    logTime: 1,
+    groupingId: null,
+    event: TemperatureEvent,
+    eventFilter: server2,
+    nodeLogs: [
+        coolingContol: { useAir: false, percentageAirCooling: 0, percentageWaterCooling: 0.25}
+    ]
+}
+---
+eventLogRecord: {
+    logTime: 2,
+    groupingId: null,
+    event: TemperatureEvent,
+    eventFilter: external,
+    nodeLogs: [
+        coolingContol: { airTemperature: 25, useAir: true, percentageAirCooling: 0.25, percentageWaterCooling: 0}
+    ]
+}
+

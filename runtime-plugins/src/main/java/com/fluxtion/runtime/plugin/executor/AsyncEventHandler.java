@@ -16,42 +16,42 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxtion.runtime.plugin.events;
+package com.fluxtion.runtime.plugin.executor;
 
 import com.fluxtion.runtime.event.Event;
+import com.fluxtion.runtime.lifecycle.EventHandler;
+import java.util.concurrent.Future;
 
 /**
- * A generic event, where the filter is determined by the class type. An event
- * handler can use the following syntax to receive events filtered by generic
- * type:
- * <pre>
- * 
- *{@literal @}EventHandler
- * public void someMethod(GenericEvent&lt;MyType&gt; event){
- * ...
- * }
- * </pre>
- * 
- *<p> 
- * The generated SEP provide all filtering logic within the generated dispatch.
- * 
+ *
  * @author Greg Higgins (greg.higgins@V12technology.com)
- * @param <T> The listener to register
+ * @param <E> The EventHandler type
  */
-public class GenericEvent<T> extends Event {
+public interface AsyncEventHandler<E extends EventHandler> extends EventHandler {
 
-    public final T value;
+    public static AsyncEventHandler NULL_ASYNCEVENTHANDLER = new AsyncEventHandler() {
 
-    public GenericEvent(T value) {
-        super(Event.NO_ID, value.getClass().getCanonicalName());
-        this.value = value;
+        @Override
+        public Future submitTask(SepCallable task) {
+            return null;
+        }
 
-    }
+        @Override
+        public void onEvent(Event e) {
+        }
 
-    public <V extends T> GenericEvent(Class<T> valueClass, V value) {
-        super(Event.NO_ID, valueClass.getCanonicalName());
-        this.value = value;
+        @Override
+        public EventHandler delegate() {
+            return null;
+        }
+        
+        
+    };
+//
+    EventHandler delegate();
+//
+//    <T> Future<T> submit(Callable<T> task);
 
-    }
+    <T> Future<T> submitTask(SepCallable<T, E> task);
 
 }

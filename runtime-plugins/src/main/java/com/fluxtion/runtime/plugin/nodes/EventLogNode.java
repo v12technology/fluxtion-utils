@@ -16,22 +16,23 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.fluxtion.runtime.plugin.logging;
+package com.fluxtion.runtime.plugin.nodes;
+
+import com.fluxtion.runtime.plugin.logging.EventLogSource;
+import com.fluxtion.runtime.plugin.logging.EventLogger;
 
 /**
- * EventLogSource is registered with a CalculationLogManager. The
- * CalculationLogManager provides a configured EventLogger to this instance via
- * the setLogger method.
- *
- * @author Greg Higgins (greg.higgins@v12technology.com)
+ * Base class that adds EventLog functionality.
+ * 
+ * @author V12 Technology Limited
  */
-public interface EventLogSource {
+public class EventLogNode implements EventLogSource{
 
-    /**
-     * A configured {@link EventLogger} this EventLogSource can write events to.
-     * 
-     * @param log log target
-     */
-    void setLogger(EventLogger log);
+    protected EventLogger log;
 
+    @Override
+    public void setLogger(EventLogger log) {
+        this.log = log;
+    }
+    
 }

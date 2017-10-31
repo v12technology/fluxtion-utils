@@ -19,18 +19,42 @@
 package com.fluxtion.runtime.plugin.events;
 
 /**
- * A generic listener registration event.
- * 
+ * A generic listener registration event, extends {@link GenericEvent}. To
+ * receive events filtered by type the event handler annotates a method similar to
+ * that below:
+ *
+ *
+ * <pre>
+ *
+ * private List&lt;AlarmListener&gt; listeners;
+ *
+ *{@literal @}EventHandler(propagate = false)
+ * public void setAlarmListener(ListenerRegistrationEvent&lt;AlarmListener&gt; registration) {
+ *   if(registration.register) {
+ *     listeners.add(registration.listener());
+ *   } else {
+ *     listeners.remove(registration.listener());
+ *   }
+ * }
+ * </pre>
+ *
+ * Using propagate=false will swallow the event at this node.
+ * <p>
+ * The generated SEP provide all filtering logic within the generated dispatch.
+ *
  * @author V12 Technology Limited
- * @param <T>
+ * @param <T> The listener type
  */
 public class ListenerRegistrationEvent<T> extends GenericEvent<T> {
 
     public final boolean register;
-    
-    public <V extends T> ListenerRegistrationEvent(Class<T> listenerClass, V value, boolean register) {
-        super(listenerClass, value);
+
+    public <V extends T> ListenerRegistrationEvent(Class<T> listenerClass, V listener, boolean register) {
+        super(listenerClass, listener);
         this.register = register;
     }
 
+    public T listener() {
+        return value;
+    }
 }
