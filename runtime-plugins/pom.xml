@@ -65,7 +65,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
             <url>https://mymavenrepo.com/repo/a6PnK93U9WA0ChAw8D8u/</url>
         </repository>
     </repositories>  
-	
+    
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+    
     <profiles>
         <profile>
             <id>release</id>
