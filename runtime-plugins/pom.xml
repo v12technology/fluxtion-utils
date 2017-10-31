@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.fluxtion.extension</groupId>
     <artifactId>runtime-plugins</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
     <name>fluxtion :: runtime-plugins</name>
 
