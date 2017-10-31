@@ -123,7 +123,7 @@ public class SEPManagementEngine {
      *
      * @param req http request
      * @param res http response
-     * @return
+     * @return string confirming processing complete
      * @throws Exception class handling exception
      */
     public Object onEvent(Request req, Response res) throws Exception {
@@ -150,7 +150,7 @@ public class SEPManagementEngine {
      *
      * @param req http request
      * @param res http response
-     * @return
+     * @return string confirming processing complete
      * @throws Exception class handling exception
      */
     public Object traceField(Request req, Response res) throws Exception {
@@ -166,7 +166,7 @@ public class SEPManagementEngine {
      *
      * @param req http request
      * @param res http response
-     * @return
+     * @return string confirming processing complete
      * @throws Exception class handling exception
      */
     public Object configureEventLogger(Request req, Response res) throws Exception {
