@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
     <name>fluxtion :: runtime-plugins</name>
 
     <description>Plugins that can be used at runtime with a fluxtion generated event processor</description>
-    <url>https://github.com/v12technology/fluxtion-visualiser</url>
+    <url>https://github.com/v12technology/fluxtion-utils</url>
     
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
