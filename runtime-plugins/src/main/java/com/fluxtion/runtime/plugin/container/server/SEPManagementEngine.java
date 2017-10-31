@@ -71,7 +71,7 @@ public class SEPManagementEngine {
     /**
      * Initialises a the SEPManagementEngine and binds to user specified port.
      *
-     * @param port
+     * @param port the http port to bind to
      */
     public void init(int port) {
 //        stop();
@@ -102,8 +102,8 @@ public class SEPManagementEngine {
      * Registers a SEP with this SEPManagementEngine. The supplied identifier
      * must be unique or it will overwrite any existing
      *
-     * @param sep
-     * @param id
+     * @param sep the event handler
+     * @param id String id of the handler
      */
     public void registerSep(AsyncEventHandler sep, String id) {
         handlerMap.put(id, sep);
@@ -121,10 +121,10 @@ public class SEPManagementEngine {
      * general event handler, embedded {@link Event} instances must obey java
      * bean patterns to be successfully marshalled and processed.
      *
-     * @param req
-     * @param res
+     * @param req http request
+     * @param res http response
      * @return
-     * @throws Exception
+     * @throws Exception class handling exception
      */
     public Object onEvent(Request req, Response res) throws Exception {
         EventHandler sep = getSep(req);
@@ -148,10 +148,10 @@ public class SEPManagementEngine {
     /**
      * configures tracing of a field in a node
      *
-     * @param req
-     * @param res
+     * @param req http request
+     * @param res http response
      * @return
-     * @throws Exception
+     * @throws Exception class handling exception
      */
     public Object traceField(Request req, Response res) throws Exception {
         EventHandler sep = getSep(req);
@@ -164,10 +164,10 @@ public class SEPManagementEngine {
     /**
      * configures the event logger auditor
      *
-     * @param req
-     * @param res
+     * @param req http request
+     * @param res http response
      * @return
-     * @throws Exception
+     * @throws Exception class handling exception
      */
     public Object configureEventLogger(Request req, Response res) throws Exception {
         EventHandler sep = getSep(req);
