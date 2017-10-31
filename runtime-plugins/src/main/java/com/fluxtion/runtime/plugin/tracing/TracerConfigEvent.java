@@ -26,7 +26,8 @@ import com.fluxtion.runtime.event.Event;
  * controls when properties are traced and published:
  *
  * <ul>
- * <li>publishOnDemand:true - the user must send a {@link PublishProperties}
+ * <li>publishOnDemand:true - the user must send a
+ * {@link com.fluxtion.runtime.plugin.tracing.TraceEvents.PublishProperties}
  * event to trace and publish. This is the default setting
  * <li>publishOnDemand:false - a trace will be published on any event processed.
  * </ul>
