@@ -26,10 +26,10 @@ package com.fluxtion.runtime.plugin.events;
  *
  * <pre>
  *
- * private List&lt;AlarmListener> listeners;
+ * private List&lt;AlarmListener&gt; listeners;
  *
  *{@literal @}EventHandler(propagate = false)
- * public void setAlarmListener(ListenerRegistrationEvent&lt;AlarmListener> registration) {
+ * public void setAlarmListener(ListenerRegistrationEvent&lt;AlarmListener&gt; registration) {
  *   if(registration.register) {
  *     listeners.add(registration.listener());
  *   } else {
@@ -43,7 +43,7 @@ package com.fluxtion.runtime.plugin.events;
  * The generated SEP provide all filtering logic within the generated dispatch.
  *
  * @author V12 Technology Limited
- * @param <T>
+ * @param <T> The listener type
  */
 public class ListenerRegistrationEvent<T> extends GenericEvent<T> {
 

@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  * micros (100 milliseconds)
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
- * @param <E>
+ * @param <E> The EventHandler type
  */
 public class SepExecutor<E extends EventHandler> implements AsyncEventHandler<E> {
 

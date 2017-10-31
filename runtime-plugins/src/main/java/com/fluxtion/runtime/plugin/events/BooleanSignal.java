@@ -24,12 +24,12 @@ import com.fluxtion.runtime.event.Event;
  * BooleanSignal, an event that facilitates publishing control signals to event
  * handlers. BooleanSignals remove the need to define bespoke control events by
  * using a named signal and filtering .
- * <p>
+ * <br>
  *
  * The SEP uses the BooleanSignal name to filter the events a receiver will
  * process. The generated SEP provide all filtering logic within the generated
  * dispatch code. A node marks a method with a <b>filtered EventHandler</b> annotation
- * as shown:<p>
+ * as shown:<br>
  * 
  * <pre>
  *{@literal @}EventHandler(filterString = "filterString")
@@ -40,7 +40,7 @@ import com.fluxtion.runtime.event.Event;
  * Using the propagate=false will ensure the event is consumed by the signal
  * handler. Swallowing an event prevents a control signal from executing an
  * event chain for any dependent nodes of the event processor:
- * <p>
+ * <br>
  * 
  * <pre>
  *{@literal @}EventHandler(filterString = "filterString", propagate = false)

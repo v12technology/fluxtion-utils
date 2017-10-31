@@ -25,7 +25,7 @@ import com.fluxtion.runtime.event.Event;
  * NumericSignal, an event providing a generic method to publish numeric values
  * to event handlers. NumericSignal remove the need to define bespoke numeric
  * events for each type of signal by using a named signal.
- * <p>
+ * <br>
  *
  * The NumericSignal name filters the events a receiver will process. The
  * generated SEP provide all filtering logic within the generated dispatch. A
@@ -43,7 +43,7 @@ import com.fluxtion.runtime.event.Event;
  * Using the propagate=false will ensure the event is consumed by the signal
  * handler. Swallowing an event prevents a control signal from executing an
  * event chain for any dependent nodes:
- * <p>
+ * <br>
  *
  * <pre>
  *{@literal @}EventHandler(filterString = "filterString", propagate = false)

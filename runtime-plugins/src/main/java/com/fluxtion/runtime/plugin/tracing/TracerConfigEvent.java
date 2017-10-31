@@ -21,15 +21,17 @@ package com.fluxtion.runtime.plugin.tracing;
 import com.fluxtion.runtime.event.Event;
 
 /**
- * An event to configure property tracing for a {@link Tracer} registered in a static event processor.
- * The {@link #publishOnDemand} property controls when properties are traced and
- * published:
+ * An event to configure property tracing for a {@link Tracer} registered in a
+ * static event processor. The publishOnDemand in the constructor property
+ * controls when properties are traced and published:
  *
  * <ul>
- * <li>publishOnDemand:true - the user must send a {@link PublishProperties} event to trace and publish. This is the default setting
- * <li>publishOnDemand:false - a trace will be published on any event processed. 
+ * <li>publishOnDemand:true - the user must send a
+ * {@link com.fluxtion.runtime.plugin.tracing.TraceEvents.PublishProperties}
+ * event to trace and publish. This is the default setting
+ * <li>publishOnDemand:false - a trace will be published on any event processed.
  * </ul>
- * 
+ *
  * The {@link #record} property controls if a property is traced:
  *
  * <ul>
@@ -37,7 +39,7 @@ import com.fluxtion.runtime.event.Event;
  * <li>record:false - remove a trace
  * </ul>
  *
- * 
+ *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
 public class TracerConfigEvent extends Event {
@@ -73,6 +75,7 @@ public class TracerConfigEvent extends Event {
         this.record = record;
         this.publishOnDemand = true;
     }
+
     public TracerConfigEvent(String nodeName, String fieldName) {
         this.nodeName = nodeName;
         this.fieldName = fieldName;

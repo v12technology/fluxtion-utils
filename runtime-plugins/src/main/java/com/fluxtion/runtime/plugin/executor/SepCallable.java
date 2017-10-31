@@ -12,7 +12,7 @@ import com.fluxtion.runtime.lifecycle.EventHandler;
  * with an {@link EventHandler} in a thread safe manner. {@link #call(EventHandler)
  * } is invoked on the same thread events are pushed into the
  * {@link EventHandler}. Any return from the call method is passed into the
- * {@link Future} returned by submitting a SepCallable to the
+ * instance returned by submitting a SepCallable to the
  * {@link AsyncEventHandler}.
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)

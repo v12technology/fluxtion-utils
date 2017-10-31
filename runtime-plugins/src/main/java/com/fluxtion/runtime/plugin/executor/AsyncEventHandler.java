@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
 /**
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
- * @param <E>
+ * @param <E> The EventHandler type
  */
 public interface AsyncEventHandler<E extends EventHandler> extends EventHandler {
 
