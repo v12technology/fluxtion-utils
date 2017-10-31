@@ -54,9 +54,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
     </developers>
     
     <scm>
-        <connection>scm:git:https://github.com/v12technology/fluxtion-visualiser.git</connection>
-        <developerConnection>scm:git:https://github.com/v12technology/fluxtion-visualiser.git</developerConnection>
-        <url>https://github.com/v12technology/fluxtion-visualiser</url>
+        <connection>scm:git:https://github.com/v12technology/fluxtion-utils.git</connection>
+        <developerConnection>scm:git:https://github.com/v12technology/fluxtion-utils.git</developerConnection>
+        <url>https://github.com/v12technology/fluxtion-utils</url>
     </scm>
     
     <repositories>   
