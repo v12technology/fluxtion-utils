@@ -59,13 +59,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
         <url>https://github.com/v12technology/fluxtion-visualiser</url>
     </scm>
     
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
-    
     <repositories>   
         <repository>
             <id>fluxtion.repo</id>
