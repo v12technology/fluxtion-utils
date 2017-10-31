@@ -15,7 +15,7 @@ package com.fluxtion.runtime.plugin.events;
  * 
  * 
  *{@literal @}EventHandler(propagate = false)
- * public void configUpdate(ConfigurationEvent&lt;MyConfig> configUpdate) {
+ * public void configUpdate(ConfigurationEvent&lt;MyConfig&gt; configUpdate) {
  * ...
  * }
  * </pre>
