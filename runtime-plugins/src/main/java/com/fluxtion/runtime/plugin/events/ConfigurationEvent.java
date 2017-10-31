@@ -21,7 +21,7 @@ package com.fluxtion.runtime.plugin.events;
  * </pre>
  *
  * Using propagate=false will swallow the event at this node.
- *<p> 
+ *<br>
  * The generated SEP provide all filtering logic within the generated dispatch.
  * 
  * @author Greg Higgins (greg.higgins@V12technology.com)

@@ -40,7 +40,7 @@ import com.fluxtion.runtime.event.Event;
  * Using the propagate=false will ensure the event is consumed by the signal
  * handler. Swallowing an event prevents a control signal from executing an
  * event chain for any dependent nodes of the event processor:
- * </p>
+ * <br>
  * 
  * <pre>
  *{@literal @}EventHandler(filterString = "filterString", propagate = false)
