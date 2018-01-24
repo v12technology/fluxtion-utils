@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <!-- Required meta tags -->
-    <title>Fluxtion dashboard - ${summary.sepName}</title>
+    <title>Fluxtion container landing page</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
@@ -13,7 +13,8 @@
 
     <div class="jumbotron jumbotron-fluid">
       <div class="container">
-        <h1 class="display-5">Fluxtion dashboard for ${summary.sepName}</h1>
+        <h1 class="display-5">Fluxtion Container</h1>
+        <p class="lead">This is the landing page for fluxtion event processors managed by this container</p>
       </div>
     </div>
      
@@ -21,30 +22,18 @@
         <div class="card-deck">
             <div class="card text-white bg-primary mb-3" >
                 <div class="card-header">
-                    Summary for: ${summary.sepName}
+                    Registered event processors
                 </div>
 
                 <div class="card-body">
                     <ul class="list-group">
-                        <li class="list-group-item list-group-item-action">Name: ${summary.sepName}</li>
-                        <li class="list-group-item list-group-item-action">Class: ${summary.className}</li>
-                        <li class="list-group-item list-group-item-action">Scheduler:</li>
-                        <li class="list-group-item list-group-item-action">Event log level default:</li>
-                        <li class="list-group-item list-group-item-action">Profiling:</li>
-                        <li class="list-group-item list-group-item-action">Tracing:</li>
-                        <li class="list-group-item list-group-item-action">Event sources:</li>
+#foreach( $processor in $processors )
+                        <li class="list-group-item list-group-item-action"><a href="/${processor}/dashboard">${processor}</a></li>
+#end
                     </ul>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    graph image: ${summary.sepName}
-                </div>
-                <a href="/${summary.sepName}/graphimage">
-                <img class="card-img-top" src="/${summary.sepName}/graphimage" alt="Card image cap">
-                </a>
-            </div>
         </div>
     </div>
 

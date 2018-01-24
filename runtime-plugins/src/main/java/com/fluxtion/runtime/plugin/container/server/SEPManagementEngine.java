@@ -78,6 +78,7 @@ public class SEPManagementEngine {
         spark = Service.ignite();
         spark.staticFileLocation("/public");
         spark.port(port);
+        spark.get("/", this::landingPage);
         spark.path("/:sep_processor", () -> {
             spark.post(TRACER.endPoint(), this::traceField);
             spark.post(EVENT_LOGGER.endPoint(), this::configureEventLogger);
@@ -244,6 +245,13 @@ public class SEPManagementEngine {
             return raw;
         }
         return ret;
+    }
+
+    private Object landingPage(Request req, Response res) {
+        handlerMap.keySet();
+        final HashMap map = new HashMap();
+        map.put("processors", handlerMap.keySet());
+        return new VelocityTemplateEngine().render(new ModelAndView(map, "templates/landingpage.vsl"));
     }
 
 }
