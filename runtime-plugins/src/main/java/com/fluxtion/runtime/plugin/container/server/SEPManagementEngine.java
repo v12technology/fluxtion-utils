@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
+import spark.Route;
 import spark.Service;
 import spark.template.velocity.VelocityTemplateEngine;
 
@@ -89,6 +90,31 @@ public class SEPManagementEngine {
             spark.get(DASHBOARD.endPoint(), this::dashboard);
         });
         spark.awaitInitialization();
+    }
+
+    public void getJson(String path, Route route) {
+        LOGGER.info("adding route: /[:sep_processor]/{}", path );
+        spark.path("/:sep_processor", () -> {
+            spark.get("/" + path, "application/json", (request, response) -> {
+                response.type("application/json");
+                return jacksonObjectMapper.writeValueAsString(route.handle(request, response));
+            });
+        });        
+    }
+    
+    public void get(String path, Route route) {
+        LOGGER.info("adding route: /[:sep_processor]/{}", path );
+        spark.path("/:sep_processor", () -> {
+            spark.get("/" + path, route);
+        });
+    }
+    
+
+    public void post(String path, Route route) {
+        LOGGER.info("adding route: /[:sep_processor]/{}", path );
+        spark.path("/:sep_processor", () -> {
+            spark.post("/" + path, route);
+        });
     }
 
     /**

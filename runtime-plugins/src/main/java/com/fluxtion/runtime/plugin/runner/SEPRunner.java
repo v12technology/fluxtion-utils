@@ -13,6 +13,7 @@ import com.fluxtion.runtime.plugin.executor.SepCallable;
 import com.fluxtion.runtime.plugin.executor.SepExecutor;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import spark.Route;
 
 /**
  *
@@ -22,15 +23,15 @@ public class SEPRunner {
 
     private final SepExecutor executor;
     private final SEPManagementEngine managementEngine;
-    
-    public SEPRunner(EventHandler handler, String name){
+
+    public SEPRunner(EventHandler handler, String name) {
         this(handler, name, -1);
     }
-    
-    public SEPRunner(EventHandler handler, String name, int managementPort){
+
+    public SEPRunner(EventHandler handler, String name, int managementPort) {
         executor = new SepExecutor(handler, name);
         managementEngine = new SEPManagementEngine();
-        managementEngine.init(managementPort<1?4567: managementPort);
+        managementEngine.init(managementPort < 1 ? 4567 : managementPort);
         managementEngine.registerSep(executor, name);
     }
 
@@ -65,5 +66,16 @@ public class SEPRunner {
     public void onEvent(Event e) {
         executor.onEvent(e);
     }
-    
+
+    public void get(String string, Route route) {
+        managementEngine.get(string, route);
+    }
+
+    public void getJson(String path, Route route) {
+        managementEngine.getJson(path, route);
+    }
+
+    public void post(String path, Route route) {
+        managementEngine.post(path, route);
+    }
 }

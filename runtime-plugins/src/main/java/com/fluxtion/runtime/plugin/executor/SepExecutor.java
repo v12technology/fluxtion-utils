@@ -20,6 +20,7 @@ package com.fluxtion.runtime.plugin.executor;
 
 import com.fluxtion.runtime.event.Event;
 import com.fluxtion.runtime.lifecycle.EventHandler;
+import com.fluxtion.runtime.lifecycle.Lifecycle;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -61,7 +62,6 @@ import org.slf4j.LoggerFactory;
  * @param <E> The EventHandler type
  */
 public class SepExecutor<E extends EventHandler> implements AsyncEventHandler<E> {
-
 
     private final EventHandler targetSep;
     private final String name;
@@ -204,7 +204,7 @@ public class SepExecutor<E extends EventHandler> implements AsyncEventHandler<E>
         queue.add(ft);
         return ft;
     }
-    
+
     @Override
     public <T> Future<T> submitTask(SepCallable<T, E> task) {
         return submit(new Callable<T>() {
@@ -212,7 +212,7 @@ public class SepExecutor<E extends EventHandler> implements AsyncEventHandler<E>
                 return task.call((E) targetSep);
             }
         });
-    } 
+    }
 
     @Override
     public EventHandler delegate() {
@@ -240,6 +240,9 @@ public class SepExecutor<E extends EventHandler> implements AsyncEventHandler<E>
         eventLoopThread = new Thread(name) {
             @Override
             public void run() {
+                if (targetSep instanceof Lifecycle) {
+                    ((Lifecycle) targetSep).init();
+                }
                 while (run.get()) {
                     loggerTasks.trace("entering event loop");
                     //read EventSource's
@@ -270,6 +273,9 @@ public class SepExecutor<E extends EventHandler> implements AsyncEventHandler<E>
                     }
                 }
                 loggerTasks.info("exiting event loop");
+                if (targetSep instanceof Lifecycle) {
+                    ((Lifecycle) targetSep).tearDown();
+                }
             }
         };
         eventLoopThread.start();
