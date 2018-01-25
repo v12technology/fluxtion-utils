@@ -18,14 +18,12 @@
  */
 package com.fluxtion.runtime.plugin.events;
 
-import com.fluxtion.runtime.event.Event;
-
 /**
  * An event notifying the SEP of a new wallclock time.
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
-public class TimingPulseEvent extends Event {
+public class TimingPulseEvent extends ChronicleMarshallableEvent {
 
     public static final int ID = 245;
 

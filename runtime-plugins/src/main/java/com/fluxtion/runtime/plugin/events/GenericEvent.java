@@ -38,7 +38,7 @@ import com.fluxtion.runtime.event.Event;
  * @author Greg Higgins (greg.higgins@V12technology.com)
  * @param <T> The listener to register
  */
-public class GenericEvent<T> extends Event {
+public class GenericEvent<T> extends ChronicleMarshallableEvent {
 
     public final T value;
 

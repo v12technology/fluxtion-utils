@@ -53,7 +53,7 @@ import com.fluxtion.runtime.event.Event;
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
-public class NumericSignal extends Event {
+public class NumericSignal extends ChronicleMarshallableEvent {
 
     private final double value;
 

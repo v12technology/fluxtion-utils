@@ -20,8 +20,8 @@ package com.fluxtion.runtime.plugin.events;
 
 /**
  * A generic listener registration event, extends {@link GenericEvent}. To
- * receive events filtered by type the event handler annotates a method similar to
- * that below:
+ * receive events filtered by type the event handler annotates a method similar
+ * to that below:
  *
  *
  * <pre>
@@ -48,6 +48,11 @@ package com.fluxtion.runtime.plugin.events;
 public class ListenerRegistrationEvent<T> extends GenericEvent<T> {
 
     public final boolean register;
+
+    public ListenerRegistrationEvent(T listener, boolean register) {
+        super(listener);
+        this.register = register;
+    }
 
     public <V extends T> ListenerRegistrationEvent(Class<T> listenerClass, V listener, boolean register) {
         super(listenerClass, listener);

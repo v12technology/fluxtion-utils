@@ -51,7 +51,7 @@ import com.fluxtion.runtime.event.Event;
  *
  * @author Greg Higgins (greg.higgins@V12technology.com)
  */
-public class BooleanSignal extends Event {
+public class BooleanSignal extends ChronicleMarshallableEvent {
 
     private final boolean value;
 

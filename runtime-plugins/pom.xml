@@ -218,6 +218,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
             <artifactId>log4j-core</artifactId>
             <version>2.10.0</version>
         </dependency>
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>chronicle-queue</artifactId>
+        </dependency>
         <!--        <dependency>
             <groupId>com.fluxtion.extension</groupId>
             <artifactId>fluxtion-declarative-api</artifactId>
@@ -237,7 +241,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>net.openhft</groupId>
+                <artifactId>chronicle-bom</artifactId>
+                <version>1.15.50</version>
+                <!--<version>1.13.59</version>-->
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
+        
     </dependencyManagement>
 	
 </project>

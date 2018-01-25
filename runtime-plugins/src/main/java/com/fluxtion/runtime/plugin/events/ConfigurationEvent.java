@@ -28,7 +28,10 @@ package com.fluxtion.runtime.plugin.events;
  */
 public class ConfigurationEvent<T> extends GenericEvent<T> {
 
-
+    public ConfigurationEvent(T configuration) {
+        super(configuration);
+    }
+    
     public <V extends T> ConfigurationEvent(T configuration, V value) {
         super((Class<T>)configuration.getClass(), value);
     }
