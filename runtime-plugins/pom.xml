@@ -75,6 +75,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses />.
     
     <profiles>
         <profile>
+            <id>mymaven</id>
+            <distributionManagement>
+                <repository>
+                    <id>myMavenRepo.write</id>
+                    <url>${myMavenRepo.write.url}</url>
+                </repository>
+                <snapshotRepository>
+                    <id>myMavenRepo.write</id>
+                    <url>${myMavenRepo.write.url}</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+        <profile>
             <id>release</id>
             <build>
                 <plugins>
