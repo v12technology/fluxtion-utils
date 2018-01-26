@@ -90,7 +90,7 @@ public class Tracer implements Auditor {
     @EventHandler
     public void publishProperties(PublishProperties publishProperties) {
         allReaderSet.forEach(PropertyReader::recordValue);
-        onEventPropertyReaderSet.forEach(p -> listenerSet.forEach(l -> l.update(p)));
+        allReaderSet.forEach(p -> listenerSet.forEach(l -> l.update(p)));
     }
 
     @EventHandler
