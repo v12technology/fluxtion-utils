@@ -34,6 +34,7 @@ public class TimingEventSourcre implements EventSource{
         if(firePulse){
             previous = now;
             ret = pulse;
+            pulse.currentTimeMillis = System.currentTimeMillis();
         }
         return ret;
     }

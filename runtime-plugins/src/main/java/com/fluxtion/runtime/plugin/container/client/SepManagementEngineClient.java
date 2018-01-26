@@ -6,6 +6,7 @@
 package com.fluxtion.runtime.plugin.container.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fluxtion.runtime.plugin.container.SerialisedEvent;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.EVENT_LOGGER;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.GRAPHML;
@@ -87,7 +88,8 @@ public class SepManagementEngineClient {
             @Override
             public String writeValue(Object value) {
                 try {
-                    return jacksonObjectMapper.writeValueAsString(value);
+                    final String stringVal = jacksonObjectMapper.writeValueAsString(value);
+                    return stringVal;
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }

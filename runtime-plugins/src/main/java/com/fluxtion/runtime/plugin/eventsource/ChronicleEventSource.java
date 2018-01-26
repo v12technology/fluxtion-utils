@@ -34,7 +34,7 @@ public class ChronicleEventSource implements EventSource {
             queuePath.mkdirs();
         }
         queue = SingleChronicleQueueBuilder.binary(queuePath).build();
-        methodReader = queue.createTailer().methodReader((EventHandler<Event>) (Event e) -> {
+        methodReader = queue.createTailer().toEnd().methodReader((EventHandler<Event>) (Event e) -> {
             event = e;
         });
         try {
