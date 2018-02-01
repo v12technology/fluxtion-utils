@@ -46,6 +46,10 @@ public class SepManagementEngineClient {
         this.sep_url = root_url + "/" + sepName; 
     }
 
+    public String getSep_url() {
+        return sep_url;
+    }
+
     public void shutDown() throws IOException{
         Unirest.shutdown();
     }
@@ -69,6 +73,19 @@ public class SepManagementEngineClient {
     
     public HttpResponse<String> getGraphMl(String sepName) throws UnirestException {
         return get(GRAPHML.url(sep_url)).asString();
+    }
+    
+    public HttpResponse<String> getHttp(String endpoint) throws UnirestException {
+        return get(sep_url + "/" + endpoint).asString();
+    }
+    
+    public <T> T getJson(String endpoint, Class<T> clazz) throws UnirestException {
+        HttpResponse<T> asObject = get(sep_url + "/" + endpoint).asObject(clazz);
+        return asObject.getBody();
+    }
+    
+    public HttpResponse<String> posHttp(String endpoint, Object object) throws UnirestException {
+        return post(sep_url + "/" + sepName).body(object).asString();
     }
     
     private static void initialise() {

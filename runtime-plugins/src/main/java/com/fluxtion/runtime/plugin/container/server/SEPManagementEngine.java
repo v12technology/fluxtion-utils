@@ -7,6 +7,7 @@ package com.fluxtion.runtime.plugin.container.server;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fluxtion.runtime.event.Event;
 import com.fluxtion.runtime.lifecycle.EventHandler;
 import static com.fluxtion.runtime.plugin.container.server.Endpoints.DASHBOARD;
@@ -62,6 +63,7 @@ public class SEPManagementEngine {
     public SEPManagementEngine() {
         handlerMap = new HashMap<>();
         jacksonObjectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        jacksonObjectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
     }
 
     /**
