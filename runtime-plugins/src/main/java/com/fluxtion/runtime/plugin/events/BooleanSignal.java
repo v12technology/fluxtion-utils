@@ -34,6 +34,7 @@ import com.fluxtion.runtime.event.Event;
  * <pre>
  *{@literal @}EventHandler(filterString = "filterString")
  * public void controlMethod(BooleanSignal publishSignal){
+ * 
  * }
  * </pre>
  *
