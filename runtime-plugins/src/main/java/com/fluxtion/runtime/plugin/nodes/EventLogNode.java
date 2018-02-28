@@ -20,6 +20,7 @@ package com.fluxtion.runtime.plugin.nodes;
 
 import com.fluxtion.runtime.plugin.logging.EventLogSource;
 import com.fluxtion.runtime.plugin.logging.EventLogger;
+import com.fluxtion.runtime.plugin.logging.NullEventLogger;
 
 /**
  * Base class that adds EventLog functionality.
@@ -28,7 +29,7 @@ import com.fluxtion.runtime.plugin.logging.EventLogger;
  */
 public class EventLogNode implements EventLogSource{
 
-    protected EventLogger log;
+    protected EventLogger log = NullEventLogger.INSTANCE;
 
     @Override
     public void setLogger(EventLogger log) {

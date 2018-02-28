@@ -24,6 +24,7 @@ import com.fluxtion.api.annotations.EventHandler;
 import com.fluxtion.api.annotations.Initialise;
 import com.fluxtion.runtime.plugin.logging.EventLogSource;
 import com.fluxtion.runtime.plugin.logging.EventLogger;
+import com.fluxtion.runtime.plugin.logging.NullEventLogger;
 
 /**
  * Fires an update when a schedule period has expired.
@@ -97,6 +98,7 @@ public class TimedNotifier implements EventLogSource {
         period = periodInSeconds;
         previous = 0;
         timeInSeconds = 0;
+        log = NullEventLogger.INSTANCE;
     }
 
     @Override
