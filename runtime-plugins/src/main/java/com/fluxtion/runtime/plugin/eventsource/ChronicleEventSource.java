@@ -11,6 +11,7 @@ import com.fluxtion.runtime.plugin.executor.EventSource;
 import java.io.File;
 import java.io.IOException;
 import net.openhft.chronicle.bytes.MethodReader;
+import net.openhft.chronicle.queue.ExcerptTailer;
 import net.openhft.chronicle.queue.impl.single.SingleChronicleQueue;
 import net.openhft.chronicle.queue.impl.single.SingleChronicleQueueBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -29,12 +30,17 @@ public class ChronicleEventSource implements EventSource {
     private final MethodReader methodReader;
 
     public ChronicleEventSource(String filePath) {
+        this(filePath, true);
+    }
+    
+    public ChronicleEventSource(String filePath, boolean toEnd) {
         queuePath = new File(filePath);
         if(!queuePath.exists()){
             queuePath.mkdirs();
         }
         queue = SingleChronicleQueueBuilder.binary(queuePath).build();
-        methodReader = queue.createTailer().toEnd().methodReader((EventHandler<Event>) (Event e) -> {
+        ExcerptTailer tailer = toEnd?queue.createTailer().toEnd():queue.createTailer();
+        methodReader = tailer.methodReader((EventHandler<Event>) (Event e) -> {
             event = e;
         });
         try {
