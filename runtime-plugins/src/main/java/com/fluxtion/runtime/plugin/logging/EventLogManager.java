@@ -48,6 +48,7 @@ public class EventLogManager implements Auditor {
     private Map<String, EventLogger> node2Logger;
     private boolean clearAfterPublish;
     private static Logger LOGGER = LoggerFactory.getLogger(EventLogManager.class);
+    public boolean trace = false;
 
     @Override
     public void nodeRegistered(Object node, String nodeName) {
@@ -88,7 +89,7 @@ public class EventLogManager implements Auditor {
 //    @AfterEvent
     @Override
     public void processingComplete() {
-        if (logRecord.terminateRecord()) {
+        if (logRecord.terminateRecord() | trace) {
             sink.processCalculationRecord(logRecord);
         }
         if (clearAfterPublish) {
